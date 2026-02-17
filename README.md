@@ -9,7 +9,7 @@ Welcome to my central projects repository! This workspace (Monorepo) houses my f
 A gamified to-do list application that rewards users with XP, levels, and ranks for completing real-world tasks. It features complex state management, data persistence, and a highly interactive UI.
 * **Live Demo:** [task-master-rpg.vercel.app](https://task-master-rpg.vercel.app/)
 * **Tech Stack:** React, Vite, Tailwind CSS, LocalStorage
-* **Explore the Code:** [View Project Folder](./task-master-rpg) (See the dedicated README for deep architectural details).
+* **Explore the Code:** [View Project Folder](./Task_Master_RPG) (See the dedicated README for deep architectural details).
 
 *(More projects will be added here soon...)*
 
