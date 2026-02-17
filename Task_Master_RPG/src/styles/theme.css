@@ -1,0 +1,290 @@
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  /* Gamified To-Do App Design Tokens */
+
+  /* Base colors */
+  --app-background: #0b1220;
+  --surface-1: #0f1b2d;
+  --surface-2: #13233a;
+  --border-stroke: #1e3352;
+  --text-primary: #eaf2ff;
+  --text-secondary: #a9b7d0;
+  --text-muted: #7f93b2;
+
+  /* Accent */
+  --purple-accent: #8b5cf6;
+  --purple-accent-subtle: rgba(139, 92, 246, 0.2);
+
+  /* Semantic colors */
+  --priority-high: #ef4444;
+  --priority-high-bg: rgba(239, 68, 68, 0.2);
+  --priority-medium: #f59e0b;
+  --priority-medium-bg: rgba(245, 158, 11, 0.2);
+  --priority-low: #22c55e;
+  --priority-low-bg: rgba(34, 197, 94, 0.2);
+  --overdue-warning: #f97316;
+
+  /* Typography */
+  --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-size: 16px;
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+
+  /* Spacing */
+  --spacing-sm: 8px;
+  --spacing-md: 12px;
+  --spacing-lg: 16px;
+  --spacing-xl: 24px;
+
+  /* Radii */
+  --radius-sm: 12px;
+  --radius-md: 14px;
+  --radius-lg: 16px;
+  --radius-full: 999px;
+
+  /* Legacy tokens for compatibility */
+  --background: var(--app-background);
+  --foreground: var(--text-primary);
+  --card: var(--surface-1);
+  --card-foreground: var(--text-primary);
+  --popover: var(--surface-1);
+  --popover-foreground: var(--text-primary);
+  --primary: var(--purple-accent);
+  --primary-foreground: var(--text-primary);
+  --secondary: var(--surface-2);
+  --secondary-foreground: var(--text-secondary);
+  --muted: var(--surface-1);
+  --muted-foreground: var(--text-muted);
+  --accent: var(--purple-accent);
+  --accent-foreground: var(--text-primary);
+  --destructive: var(--priority-high);
+  --destructive-foreground: var(--text-primary);
+  --border: var(--border-stroke);
+  --input: var(--border-stroke);
+  --input-background: var(--surface-1);
+  --ring: var(--purple-accent);
+  --radius: var(--radius-lg);
+}
+
+@theme inline {
+  --color-app-background: var(--app-background);
+  --color-surface-1: var(--surface-1);
+  --color-surface-2: var(--surface-2);
+  --color-border-stroke: var(--border-stroke);
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
+  --color-purple-accent: var(--purple-accent);
+  --color-purple-accent-subtle: var(--purple-accent-subtle);
+  --color-priority-high: var(--priority-high);
+  --color-priority-high-bg: var(--priority-high-bg);
+  --color-priority-medium: var(--priority-medium);
+  --color-priority-medium-bg: var(--priority-medium-bg);
+  --color-priority-low: var(--priority-low);
+  --color-priority-low-bg: var(--priority-low-bg);
+  --color-overdue-warning: var(--overdue-warning);
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-input-background: var(--input-background);
+  --color-ring: var(--ring);
+  --radius-sm: 12px;
+  --radius-md: 14px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+}
+
+@layer base {
+  * {
+    @apply border-border-stroke;
+  }
+
+  body {
+    @apply bg-app-background text-text-primary;
+    font-family: var(--font-family);
+    margin: 0;
+    padding: 0;
+  }
+
+  html {
+    font-size: var(--font-size);
+  }
+
+  h1 {
+    font-weight: var(--font-weight-semibold);
+    line-height: 1.5;
+  }
+
+  h2 {
+    font-weight: var(--font-weight-semibold);
+    line-height: 1.5;
+  }
+
+  h3 {
+    font-weight: var(--font-weight-medium);
+    line-height: 1.5;
+  }
+
+  h4 {
+    font-weight: var(--font-weight-medium);
+    line-height: 1.5;
+  }
+
+  label {
+    font-weight: var(--font-weight-medium);
+    line-height: 1.5;
+  }
+
+  button {
+    font-weight: var(--font-weight-medium);
+    line-height: 1.5;
+  }
+
+  input {
+    font-weight: var(--font-weight-normal);
+    line-height: 1.5;
+  }
+}
+
+@layer components {
+  .filter-pill {
+    padding: 8px 12px;
+    border-radius: 999px;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+  }
+
+  .filter-pill--active {
+    background-color: rgba(139, 92, 246, 0.2);
+    border: 1px solid #8b5cf6;
+    color: #eaf2ff;
+  }
+
+  .filter-pill--inactive {
+    background-color: #0f1b2d;
+    border: 1px solid #1e3352;
+    color: #a9b7d0;
+  }
+
+  .filter-pill--inactive:hover {
+    color: #eaf2ff;
+  }
+
+  .search-bar {
+    display: flex;
+    align-items: center;
+    padding: 8px;
+    border-radius: 16px;
+    border: 1px solid var(--border-stroke);
+    background-color: var(--surface-1);
+    color: var(--text-secondary);
+  }
+
+  .search-bar:focus-within {
+    border-color: var(--purple-accent);
+    box-shadow: 0 0 0 4px var(--purple-accent-subtle);
+  }
+
+  .search-input {
+    background-color: transparent;
+    border: none;
+    outline: none;
+    color: var(--text-primary);
+    width: 100%;
+    margin-left: var(--spacing-sm);
+  }
+
+  .quest-title {
+    background-color: var(--surface-1);
+    border: 1px solid var(--border-stroke);
+    color: var(--text-primary);
+    padding: 10px;
+    border-radius: var(--radius-sm);
+    outline: none;
+  }
+
+  .quest-title:focus {
+    border-color: var(--purple-accent);
+    box-shadow: 0 0 0 4px var(--purple-accent-subtle);
+  }
+
+  .quest-select {
+    background-color: var(--surface-1);
+    border: 1px solid var(--border-stroke);
+    color: var(--text-primary);
+    padding: 10px;
+    border-radius: var(--radius-sm);
+    outline: none;
+  }
+
+  .quest-select:focus {
+    border-color: var(--purple-accent);
+    box-shadow: 0 0 0 4px var(--purple-accent-subtle);
+  }
+
+  .quest-date {
+    background-color: var(--surface-1);
+    border: 1px solid var(--border-stroke);
+    color: var(--text-primary);
+    padding: 10px;
+    border-radius: var(--radius-sm);
+    outline: none;
+    color-scheme: dark;
+  }
+
+  .quest-date:focus {
+    border-color: var(--purple-accent);
+    box-shadow: 0 0 0 4px var(--purple-accent-subtle);
+  }
+
+  .quest-button {
+    background-color: var(--purple-accent);
+    color: #ffffff;
+    border: none;
+    padding: 10px 24px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+  }
+  .quest-button:hover {
+    opacity: 0.9;
+  }
+
+  .task-card {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    background-color: var(--surface-1);
+    border: 1px solid var(--border-stroke);
+    border-radius: var(--radius-sm);
+    padding: 16px;
+    border-left-width: 4px;
+  }
+  .task-card--high {
+    border-left-color: var(--priority-high);
+  }
+  .task-card--medium {
+    border-left-color: var(--priority-medium);
+  }
+  .task-card--low {
+    border-left-color: var(--priority-low);
+  }
+}
