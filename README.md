@@ -1,32 +1,24 @@
-# 🛡️ Task Master RPG
+# 🚀 Eldad's Frontend Portfolio
 
+Welcome to my central projects repository! This workspace (Monorepo) houses my frontend applications, showcasing my skills, architecture decisions, and passion for modern web development.
+
+## 📂 Featured Projects
+
+### 1. 🛡️ Task Master RPG
 **Turn your productivity into a game.**
-Task Master RPG is a gamified to-do list application that rewards you with XP, levels, and ranks for completing real-world tasks.
+A gamified to-do list application that rewards users with XP, levels, and ranks for completing real-world tasks. It features complex state management, data persistence, and a highly interactive UI.
+* **Live Demo:** [task-master-rpg.vercel.app](https://task-master-rpg.vercel.app/)
+* **Tech Stack:** React, Vite, Tailwind CSS, LocalStorage
+* **Explore the Code:** [View Project Folder](./task-master-rpg) (See the dedicated README for deep architectural details).
 
-🚀 **Live Demo:** [https://task-master-rpg.vercel.app/](https://task-master-rpg.vercel.app/)
+*(More projects will be added here soon...)*
 
-## ✨ Features
+## 🛠️ Core Tech Stack & Tools
+* **Frontend Frameworks:** React.js, Vite
+* **Languages:** JavaScript (ES6+), HTML5, CSS3
+* **Styling & UI:** Tailwind CSS, Responsive Design
+* **Architecture:** Component-driven design, Custom Hooks, State Management
+* **Tools & DevOps:** Git, GitHub, Vercel (CI/CD), VS Code
 
-### 🎮 Gamification
-
-- **XP System:** Earn XP based on task priority (Low: 25xp, Medium: 50xp, High: 100xp).
-- **Leveling:** Level up and unlock new ranks (from "Novice Adventurer" to "The Task Master").
-- **Streaks:** Maintain a daily streak by completing at least one task every day.
-- **Audio Feedback:** Satisfying sound effects when leveling up.
-
-### 📝 Task Management
-
-- **CRUD:** Create, Read, Update, and Delete quests.
-- **Priorities:** Assign importance levels to tasks.
-- **Deadlines:** Set due dates and see visual warnings for overdue quests.
-- **Filtering:** View All, Active, or Completed quests.
-- **Sorting:** Sort by Priority (High to Low) or Deadline (Urgent first).
-- **Search:** Real-time search filtering.
-
-### ⚙️ Tech Stack
-
-- **Frontend:** React, Vite
-- **Styling:** Tailwind CSS
-- **Icons:** Lucide React
-- **Persistence:** LocalStorage (Data saves automatically)
-- **Deployment:** Vercel
+## 📫 Get In Touch
+* **GitHub:** [@eldaduz](https://github.com/eldaduz)
