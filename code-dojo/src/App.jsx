@@ -109,20 +109,17 @@ function buildSession() {
   return shuffle([...easy, ...medium, ...hard]);
 }
 
-const rubricPrompt =
-  'Evaluate this JavaScript exercise solution and return ONLY valid JSON: {"score":number,"feedback":string}. Score from 0 to 100.';
+const GEMINI_ENDPOINT = (apiKey) =>
+  `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
 
 async function verifyApiKey(apiKey) {
-  const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: 'Reply with: key-ok' }] }],
-      }),
-    }
-  );
+  const response = await fetch(GEMINI_ENDPOINT(apiKey), {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      contents: [{ parts: [{ text: 'reply with ok' }] }],
+    }),
+  });
 
   if (!response.ok) {
     throw new Error('API key verification failed.');
@@ -130,18 +127,23 @@ async function verifyApiKey(apiKey) {
 }
 
 async function evaluateCode({ apiKey, exercise, code, hintUsed }) {
-  const prompt = `${rubricPrompt}\nExercise: ${exercise.title}\nDescription: ${exercise.description}\nHint used: ${
-    hintUsed ? 'yes' : 'no'
-  }\nCode:\n${code}`;
+  const task = `${exercise.title} - ${exercise.description} (Hint used: ${hintUsed ? 'yes' : 'no'})`;
 
-  const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }),
-    }
-  );
+  const response = await fetch(GEMINI_ENDPOINT(apiKey), {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      contents: [
+        {
+          parts: [
+            {
+              text: `Act as a code reviewer. Task: ${task}. Code: ${code}. Return strictly a JSON object with 'score' and 'feedback'.`,
+            },
+          ],
+        },
+      ],
+    }),
+  });
 
   if (!response.ok) {
     throw new Error('Evaluation request failed.');
