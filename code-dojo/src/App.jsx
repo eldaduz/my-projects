@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import ReactMarkdown from 'react-markdown';
 
 const API_KEY_STORAGE = 'codeDojoGeminiApiKey';
 const SESSION_STORAGE = 'codeDojoSession';
@@ -20,6 +21,7 @@ const EXERCISES = [
   {
     id: 'easy-1',
     difficulty: 'easy',
+    topics: ['array', 'map'],
     title: 'Map Names to Uppercase',
     description:
       'Given an array of names, return a new array where every name is uppercase using map.',
@@ -30,6 +32,7 @@ const EXERCISES = [
   {
     id: 'easy-2',
     difficulty: 'easy',
+    topics: ['array', 'filter'],
     title: 'Filter Passing Scores',
     description: 'Return only scores that are >= 60 from an array using filter.',
     starterCode: `function getPassing(scores) {\n  // Your code here\n}\n\nconsole.log(getPassing([45, 78, 61, 20, 90]));`,
@@ -39,6 +42,7 @@ const EXERCISES = [
   {
     id: 'medium-1',
     difficulty: 'medium',
+    topics: ['array', 'reduce'],
     title: 'Group Todos by Status',
     description:
       'Convert an array of todo objects into an object with keys "done" and "pending", each containing arrays of todo titles.',
@@ -49,6 +53,7 @@ const EXERCISES = [
   {
     id: 'medium-2',
     difficulty: 'medium',
+    topics: ['function', 'async'],
     title: 'Debounce Utility',
     description:
       'Implement debounce(fn, delay) that postpones function execution until after delay ms have elapsed since the last call.',
@@ -59,6 +64,7 @@ const EXERCISES = [
   {
     id: 'hard-1',
     difficulty: 'hard',
+    topics: ['recursion', 'memoization'],
     title: 'Memoized Fibonacci',
     description:
       'Write a memoized fibonacci function fib(n) that returns nth Fibonacci number with efficient recursion.',
@@ -69,6 +75,7 @@ const EXERCISES = [
   {
     id: 'hard-2',
     difficulty: 'hard',
+    topics: ['events', 'data-structure'],
     title: 'Tiny Event Emitter',
     description:
       'Create an emitter with on(event, cb), off(event, cb), and emit(event, payload). Keep listeners isolated per event.',
@@ -77,6 +84,9 @@ const EXERCISES = [
     baseXp: 240,
   },
 ];
+
+const DIFFICULTIES = ['easy', 'medium', 'hard'];
+const TOPICS = [...new Set(EXERCISES.flatMap((exercise) => exercise.topics))].sort();
 
 function getLevelMeta(totalXp) {
   let levelIndex = 0;
@@ -102,11 +112,14 @@ function shuffle(array) {
   return copy;
 }
 
-function buildSession() {
-  const easy = shuffle(EXERCISES.filter((item) => item.difficulty === 'easy')).slice(0, 2);
-  const medium = shuffle(EXERCISES.filter((item) => item.difficulty === 'medium')).slice(0, 2);
-  const hard = shuffle(EXERCISES.filter((item) => item.difficulty === 'hard')).slice(0, 2);
-  return shuffle([...easy, ...medium, ...hard]);
+function buildSession({ selectedDifficulties, selectedTopics }) {
+  const filtered = EXERCISES.filter((exercise) => {
+    const difficultyMatch = selectedDifficulties.includes(exercise.difficulty);
+    const topicMatch = selectedTopics.length === 0 || exercise.topics.some((topic) => selectedTopics.includes(topic));
+    return difficultyMatch && topicMatch;
+  });
+
+  return shuffle(filtered).slice(0, 6);
 }
 
 const GEMINI_ENDPOINT = (apiKey) =>
@@ -125,7 +138,7 @@ async function verifyApiKey(apiKey) {
     throw new Error('API key verification failed.');
   }
 }
-
+  
 async function evaluateCode({ apiKey, exercise, code, hintUsed }) {
   const task = `${exercise.title} - ${exercise.description} (Hint used: ${hintUsed ? 'yes' : 'no'})`;
 
@@ -137,7 +150,7 @@ async function evaluateCode({ apiKey, exercise, code, hintUsed }) {
         {
           parts: [
             {
-              text: `Act as a code reviewer. Task: ${task}. Code: ${code}. Return strictly a JSON object with 'score' and 'feedback'.`,
+              text: `Act as a concise JavaScript code reviewer. Task: ${task}. Code: ${code}. Return strictly a JSON object with keys "score" and "feedback". The "score" field MUST be a single integer between 0 and 100 representing the total percentage (e.g., 85, 100). NEVER return a score out of 5. feedback should be readable Markdown with short sections and bullet points.`,
             },
           ],
         },
@@ -160,28 +173,32 @@ async function evaluateCode({ apiKey, exercise, code, hintUsed }) {
   }
 
   return {
-    score: Number.isFinite(parsed.score) ? Math.max(0, Math.min(100, parsed.score)) : 65,
-    feedback: parsed.feedback || 'No feedback received.',
+    score: normalizeScore(parsed.score),
+    feedback: formatFeedbackText(parsed.feedback || rawText),
   };
+}
+
+function normalizeScore(score) {
+  if (!Number.isFinite(score)) return 65;
+  if (score <= 10) return Math.round(score * 10);
+  return Math.round(Math.max(0, Math.min(100, score)));
+}
+
+function formatFeedbackText(feedback) {
+  if (!feedback) return 'No feedback received.';
+  return String(feedback).replace(/^```markdown\n?|\n?```$/g, '').trim();
 }
 
 export default function App() {
   const [apiKey, setApiKey] = useState(() => localStorage.getItem(API_KEY_STORAGE) || '');
   const [showModal, setShowModal] = useState(() => !localStorage.getItem(API_KEY_STORAGE));
-  const [sessionExercises, setSessionExercises] = useState(() => {
-    const stored = localStorage.getItem(SESSION_STORAGE);
-    if (stored) {
-      try {
-        return JSON.parse(stored);
-      } catch {
-        return buildSession();
-      }
-    }
-    return buildSession();
-  });
 
+  const [selectedDifficulties, setSelectedDifficulties] = useState([...DIFFICULTIES]);
+  const [selectedTopics, setSelectedTopics] = useState([]);
+
+  const [sessionExercises, setSessionExercises] = useState(() => buildSession({ selectedDifficulties: DIFFICULTIES, selectedTopics: [] }));
   const [exerciseIndex, setExerciseIndex] = useState(0);
-  const [code, setCode] = useState(sessionExercises[0].starterCode);
+  const [code, setCode] = useState(sessionExercises[0]?.starterCode ?? '');
   const [score, setScore] = useState(null);
   const [feedback, setFeedback] = useState('');
   const [isVerifying, setIsVerifying] = useState(false);
@@ -193,7 +210,7 @@ export default function App() {
   const [totalXp, setTotalXp] = useState(0);
   const [earnedXp, setEarnedXp] = useState(null);
 
-  const currentExercise = sessionExercises[exerciseIndex];
+  const currentExercise = sessionExercises[exerciseIndex] ?? null;
   const levelMeta = useMemo(() => getLevelMeta(totalXp), [totalXp]);
   const unlockedLevels = levelMeta.levelIndex + 1;
 
@@ -201,14 +218,38 @@ export default function App() {
     localStorage.setItem(SESSION_STORAGE, JSON.stringify(sessionExercises));
   }, [sessionExercises]);
 
-  const resetForExercise = (nextIndex) => {
-    const item = sessionExercises[nextIndex];
-    setCode(item.starterCode);
+  useEffect(() => {
+    const refreshed = buildSession({ selectedDifficulties, selectedTopics });
+    setSessionExercises(refreshed);
+    setExerciseIndex(0);
+    setCode(refreshed[0]?.starterCode ?? '');
     setScore(null);
     setFeedback('');
     setHintUsed(false);
     setShowHint(false);
     setEarnedXp(null);
+  }, [selectedDifficulties, selectedTopics]);
+
+  const resetForExercise = (nextIndex) => {
+    const item = sessionExercises[nextIndex];
+    setCode(item?.starterCode ?? '');
+    setScore(null);
+    setFeedback('');
+    setHintUsed(false);
+    setShowHint(false);
+    setEarnedXp(null);
+  };
+
+  const handleDifficultyToggle = (difficulty) => {
+    setSelectedDifficulties((prev) =>
+      prev.includes(difficulty) ? prev.filter((item) => item !== difficulty) : [...prev, difficulty]
+    );
+  };
+
+  const handleTopicToggle = (topic) => {
+    setSelectedTopics((prev) =>
+      prev.includes(topic) ? prev.filter((item) => item !== topic) : [...prev, topic]
+    );
   };
 
   const handleVerify = async () => {
@@ -232,7 +273,7 @@ export default function App() {
   };
 
   const handleSubmit = async () => {
-    if (!apiKey) return;
+    if (!apiKey || !currentExercise) return;
 
     setIsSubmitting(true);
     try {
@@ -258,12 +299,14 @@ export default function App() {
   };
 
   const handleNext = () => {
+    if (!sessionExercises.length) return;
+
     const next = exerciseIndex + 1;
     if (next >= sessionExercises.length) {
-      const refreshed = buildSession();
+      const refreshed = buildSession({ selectedDifficulties, selectedTopics });
       setSessionExercises(refreshed);
       setExerciseIndex(0);
-      setCode(refreshed[0].starterCode);
+      setCode(refreshed[0]?.starterCode ?? '');
       setScore(null);
       setFeedback('');
       setHintUsed(false);
@@ -307,8 +350,8 @@ export default function App() {
         <div>
           <h1>Code Dojo</h1>
           <p>
-            {currentExercise.difficulty.toUpperCase()} challenge • Exercise {exerciseIndex + 1}/
-            {sessionExercises.length}
+            {currentExercise ? currentExercise.difficulty.toUpperCase() : 'FILTERED'} challenge • Exercise{' '}
+            {sessionExercises.length ? exerciseIndex + 1 : 0}/{sessionExercises.length}
           </p>
         </div>
         <div className="hud">
@@ -340,34 +383,74 @@ export default function App() {
 
       <main className="split-layout">
         <section className="task-panel">
-          <h2>{currentExercise.title}</h2>
-          <p>{currentExercise.description}</p>
-          <button
-            className="ghost-btn"
-            onClick={() => {
-              setShowHint((prev) => !prev);
-              setHintUsed(true);
-            }}
-          >
-            {showHint ? 'Hide Hint' : 'Use Hint (-35% XP)'}
-          </button>
-          {showHint && <div className="hint-box">💡 {currentExercise.hint}</div>}
+          <div className="filter-block">
+            <h3>Difficulty</h3>
+            <div className="filter-chip-row">
+              {DIFFICULTIES.map((difficulty) => (
+                <button
+                  key={difficulty}
+                  className={`filter-chip ${selectedDifficulties.includes(difficulty) ? 'active' : ''}`}
+                  onClick={() => handleDifficultyToggle(difficulty)}
+                >
+                  {difficulty}
+                </button>
+              ))}
+            </div>
+            <h3>Topics</h3>
+            <div className="filter-chip-row">
+              {TOPICS.map((topic) => (
+                <button
+                  key={topic}
+                  className={`filter-chip ${selectedTopics.includes(topic) ? 'active' : ''}`}
+                  onClick={() => handleTopicToggle(topic)}
+                >
+                  {topic}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {currentExercise ? (
+            <>
+              <h2>{currentExercise.title}</h2>
+              <p>{currentExercise.description}</p>
+              <button
+                className="ghost-btn"
+                onClick={() => {
+                  setShowHint((prev) => !prev);
+                  setHintUsed(true);
+                }}
+              >
+                {showHint ? 'Hide Hint' : 'Use Hint (-35% XP)'}
+              </button>
+              {showHint && <div className="hint-box">💡 {currentExercise.hint}</div>}
+            </>
+          ) : (
+            <div className="hint-box">No questions match your filters. Select more difficulties/topics.</div>
+          )}
         </section>
 
         <section className="editor-panel">
-          <textarea value={code} onChange={(event) => setCode(event.target.value)} spellCheck="false" />
+          <textarea
+            value={code}
+            onChange={(event) => setCode(event.target.value)}
+            spellCheck="false"
+            disabled={!currentExercise}
+          />
           <div className="controls">
-            <button onClick={handleSubmit} disabled={isSubmitting || !apiKey}>
+            <button onClick={handleSubmit} disabled={isSubmitting || !apiKey || !currentExercise}>
               {isSubmitting ? 'Evaluating...' : 'Submit'}
             </button>
-            <button className="ghost-btn" onClick={handleNext}>
+            <button className="ghost-btn" onClick={handleNext} disabled={!currentExercise}>
               Next Question
             </button>
           </div>
           {score !== null && (
             <div className="feedback-card">
               <h3>Score: {score}/100</h3>
-              <p>{feedback}</p>
+              <div className="feedback-body">
+                <ReactMarkdown>{feedback}</ReactMarkdown>
+              </div>
               {earnedXp !== null && (
                 <p className="xp-earned">+{earnedXp} XP earned {hintUsed ? '(hint penalty applied)' : ''}</p>
               )}
