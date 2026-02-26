@@ -138,7 +138,7 @@ async function verifyApiKey(apiKey) {
     throw new Error('API key verification failed.');
   }
 }
-
+  
 async function evaluateCode({ apiKey, exercise, code, hintUsed }) {
   const task = `${exercise.title} - ${exercise.description} (Hint used: ${hintUsed ? 'yes' : 'no'})`;
 
