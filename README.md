@@ -7,11 +7,20 @@ Welcome to my central projects repository! This workspace (Monorepo) houses my f
 ### 1. 🛡️ Task Master RPG
 **Turn your productivity into a game.**
 A gamified to-do list application that rewards users with XP, levels, and ranks for completing real-world tasks. It features complex state management, data persistence, and a highly interactive UI.
+
 * **Live Demo:** [task-master-rpg.vercel.app](https://task-master-rpg.vercel.app/)
-* **Tech Stack:** React, Vite, Tailwind CSS, LocalStorage
+* **Tech Stack:** React, Vite, Tailwind CSS, localStorage
 * **Explore the Code:** [View Project Folder](./Task_Master_RPG) (See the dedicated README for deep architectural details).
 
-*(More projects will be added here soon...)*
+---
+
+### 2. 💻 Code Dojo
+**Practice JavaScript with AI-powered feedback.**
+A split-screen coding practice game where users solve JavaScript exercises, submit solutions for Gemini-powered evaluation, and progress through a gamified XP and level system.
+
+* **Live Demo:** [codedojo-amber.vercel.app](https://codedojo-amber.vercel.app/)
+* **Tech Stack:** React, Vite, Google Gemini API, react-markdown
+* **Explore the Code:** [View Project Folder](./code-dojo) (See the dedicated README for full feature details).
 
 ## 🛠️ Core Tech Stack & Tools
 * **Frontend Frameworks:** React.js, Vite
