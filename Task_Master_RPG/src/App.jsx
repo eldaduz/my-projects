@@ -1,4 +1,18 @@
-import { useState, useEffect } from 'react'
+// ──────────────────────────────────────────────
+// App.jsx — Root Component
+//
+// This is the top-level component that React renders.
+// It is responsible for:
+//   1. User progress (level, XP, streak)
+//   2. Toast notifications (short popup messages)
+//   3. Wiring child components together
+//
+// All task-related logic is handled by the
+// useTaskManager custom hook (see hooks/useTaskManager.js).
+// This keeps App short and focused on the UI layout.
+// ──────────────────────────────────────────────
+
+import { useState, useEffect, useCallback } from 'react'
 import { SpeedInsights } from '@vercel/speed-insights/react'
 import { Analytics } from '@vercel/analytics/react'
 import { ChevronDown } from 'lucide-react'
@@ -10,144 +24,108 @@ import DeleteModal from './components/DeleteModal'
 import GamificationHUD from './components/GamificationHUD'
 import ToastNotification from './components/ToastNotification'
 import EmptyState from './components/EmptyState'
+import useTaskManager from './hooks/useTaskManager'
+import { XP_VALUES, RANK_TITLES, DEFAULT_USER_DATA, APP_TIMEZONE } from './constants/gameConfig'
 
-// Calculator for XP values:
-const XP_VALUES = { High: 100, Medium: 50, Low: 25 }
-
-// Ranking titles:
-const RANK_TITLES = [
-  'Novice Adventurer',
-  'Scroll Apprentice',
-  'Quest Ranger',
-  'Knight of the Realm',
-  'Dungeon Raider',
-  'Archmage of Focus',
-  'Grand Paladin',
-  'Dragon Slayer',
-  'Demi-God',
-  'The Task Master',
-]
+// Load user progress from localStorage when the app starts.
+// If the saved data is missing or broken, return default values.
+function loadUserData() {
+  try {
+    const savedUser = localStorage.getItem('userData')
+    return savedUser ? JSON.parse(savedUser) : DEFAULT_USER_DATA
+  } catch {
+    return DEFAULT_USER_DATA
+  }
+}
 
 export default function App() {
-  // elements useState for different components:
-  // useState for FilterPill:
-  const [filter, setFilter] = useState('All')
-  // useState for SearchInput:
-  const [searchTerm, setSearchTerm] = useState('')
-  // useState for TaskCard:
-  const [tasks, setTasks] = useState(() => {
-    try {
-      const savedData = localStorage.getItem('quests')
-      if (!savedData) return []
-      const parsedData = JSON.parse(savedData)
-      return Array.isArray(parsedData) ? parsedData : []
-    } catch {
-      return []
-    }
+  // ── Toast State ───────────────────────────────
+  // A small popup message that appears briefly after an event
+  // (e.g. "You are now a Quest Ranger!").
+
+  const [toast, setToast] = useState({
+    message: 'You have successfully promoted to the next rank',
+    show: false,
   })
-  // useState for sorting by priority:
-  const [sortBy, setSortBy] = useState('priority')
 
-  // elements for filtering results by status & search:
-  const filteredTasks = tasks
-    .filter((task) => {
-      let statusMatch = true
-      if (filter === 'All') {
-        statusMatch = true
-      } else if (filter === 'Active') {
-        statusMatch = !task.completed
-      } else if (filter === 'Completed') {
-        statusMatch = task.completed
-      }
-      const matchSearch = (task.title?.toLowerCase() ?? '').includes(searchTerm.toLowerCase())
+  // useCallback keeps a stable function reference.
+  // We pass these to child components, so a stable reference
+  // prevents unnecessary re-renders.
+  const showToast = useCallback((message) => {
+    setToast({ message, show: true })
+  }, [])
 
-      return statusMatch && matchSearch
-    })
-    .sort((a, b) => {
-      if (sortBy === 'priority') {
-        return XP_VALUES[b.priority] - XP_VALUES[a.priority]
-      } else if (sortBy === 'deadline') {
-        if (!a.date) return 1
-        if (!b.date) return -1
-        return new Date(a.date) - new Date(b.date)
-      }
-      return 0
-    })
+  const closeToast = useCallback(() => {
+    setToast((prev) => ({ ...prev, show: false }))
+  }, [])
 
-  // useState for editing a task:
-  const [editingTaskID, setEditingTaskID] = useState(null)
+  // ── User Progress State ───────────────────────
+  // Tracks level, XP, streak, and last active date.
+  const [userData, setUserData] = useState(loadUserData)
 
-  // useState for deleting modal:
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
-  const [taskToDelete, setTaskToDelete] = useState(null)
-
-  //function to clear completed tasks
-  function clearCompleted() {
-    const userConfirm = window.confirm('Are you sure you want to delete all completed quests?')
-    if (userConfirm) {
-      setTasks((prevTasks) => prevTasks.filter((task) => !task.completed))
-      showToast('All completed quests are deleted')
-    }
-  }
-
-  // functions for adding/deleting/editing/completed/saving edited quests(tasks):
-
-  // function for adding a task:
-  function addTask(questData) {
-    const newTask = {
-      id: Date.now(),
-      completed: false,
-      ...questData,
-    }
-    setTasks((prevTasks) => [...prevTasks, newTask])
-  }
-  // function for flagging a task as completed and calculating the XP and the new level requirement :
-  // function for flagging a task as completed:
-
-  function toggleTaskComplete(taskId) {
-    // 1. Find the task to get its details
-    const task = tasks.find((t) => t.id === taskId)
-
-    // 2. If the task exists + setUserData
-    if (task) {
-      const xpChange = task.completed ? -XP_VALUES[task.priority] : XP_VALUES[task.priority]
+  // Called every time a quest is completed or un-completed.
+  // Decides how much XP to add/remove, whether to level up/down,
+  // and whether the daily streak should increase.
+  const handleTaskCompletionChange = useCallback(
+    (task, willComplete) => {
+      const xpValue = XP_VALUES[task.priority] ?? 0
+      const xpDelta = willComplete ? xpValue : -xpValue
 
       setUserData((prevUser) => {
-        let newXP = prevUser.currentXP + xpChange
+        let newXP = prevUser.currentXP + xpDelta
         let newLevel = prevUser.level
         let newMaxXP = prevUser.maxXP
         let newLastActiveDate = prevUser.lastActiveDate
         let newStreak = prevUser.streak
 
-        // Level Up Logic
+        // ── Level Up ──
         if (newXP >= newMaxXP) {
           const newRankTitle = RANK_TITLES[Math.min(newLevel, RANK_TITLES.length - 1)]
-          newXP = newXP - newMaxXP // Carry over extra XP
+          newXP -= newMaxXP
           newLevel += 1
-          newMaxXP = newLevel * 100 // New target: Level * 100
-          new Audio('/levelup.mp3').play()
+          newMaxXP = newLevel * 100
+
+          // Try to play the level-up sound.
+          // Some browsers block auto-play, so we catch the error.
+          try {
+            const maybePromise = new Audio('/levelup.mp3').play()
+            if (maybePromise && typeof maybePromise.catch === 'function') {
+              maybePromise.catch(() => {
+                console.warn('Level-up sound playback was blocked by the browser.')
+              })
+            }
+          } catch {
+            console.warn('Failed to play level-up sound.')
+          }
+
           showToast(`You are now a ${newRankTitle}!`)
+
+          // ── Level Down (XP went negative) ──
         } else if (newXP < 0) {
           if (newLevel > 1) {
             newLevel -= 1
             newMaxXP = newLevel * 100
-            newXP = newMaxXP + newXP // Subtract negative XP from new max
+            newXP = newMaxXP + newXP
           } else {
             newXP = 0
           }
         }
-        if (xpChange > 0) {
-          const lastActiveDate = prevUser.lastActiveDate
-          const options = { timeZone: 'Asia/Jerusalem' }
+
+        // ── Streak Logic ──
+        // Only count streak when completing a quest (not un-completing).
+        if (xpDelta > 0) {
+          const options = { timeZone: APP_TIMEZONE }
           const today = new Date().toLocaleDateString('he-IL', options)
           const yesterdayObj = new Date()
           yesterdayObj.setDate(yesterdayObj.getDate() - 1)
           const yesterday = yesterdayObj.toLocaleDateString('he-IL', options)
-          if (lastActiveDate === yesterday) {
-            newStreak += 1
-          } else if (lastActiveDate !== today) {
-            newStreak = 1
+
+          if (prevUser.lastActiveDate === yesterday) {
+            newStreak += 1 // consecutive day → streak grows
+          } else if (prevUser.lastActiveDate !== today) {
+            newStreak = 1 // streak broken → reset to 1
           }
+
           newLastActiveDate = today
         }
 
@@ -160,88 +138,57 @@ export default function App() {
           lastActiveDate: newLastActiveDate,
         }
       })
-    }
+    },
+    [showToast],
+  )
 
-    // 3. Update the tasks state (toggle the checkbox)
-    setTasks((prevTasks) =>
-      prevTasks.map((t) => (t.id === taskId ? { ...t, completed: !t.completed } : t)),
-    )
-  }
-
-  // function for deleting a task:
-
-  function requestDelete(id) {
-    const task = tasks.find((t) => t.id === id)
-    setTaskToDelete(task)
-    setIsDeleteModalOpen(true)
-  }
-
-  function confirmDelete() {
-    setTasks((prevTasks) => prevTasks.filter((task) => task.id !== taskToDelete.id))
-    setTaskToDelete(null)
-    setIsDeleteModalOpen(false)
-  }
-  // function for editing a task:
-
-  function editTask(taskId) {
-    setEditingTaskID(taskId)
-  }
-  // function for saving a task after editing:
-
-  function saveTasks(taskId, newTitle) {
-    setTasks((prevTasks) =>
-      prevTasks.map((task) => (task.id === taskId ? { ...task, title: newTitle } : task)),
-    )
-    setEditingTaskID(null)
-  }
-
-  // useState for User data:
-  const [userData, setUserData] = useState(() => {
-    try {
-      const savedUser = localStorage.getItem('userData')
-      return savedUser
-        ? JSON.parse(savedUser)
-        : {
-            level: 1,
-            currentXP: 0,
-            maxXP: 100,
-            streak: 0,
-            lastActiveDate: null,
-          }
-    } catch {
-      return { level: 1, currentXP: 0, maxXP: 100, streak: 0, lastActiveDate: null }
-    }
+  // ── Custom Hook ───────────────────────────────
+  // useTaskManager returns all the task data and actions
+  // we need. We pass it two callbacks so it can notify us
+  // about XP changes and show toast messages.
+  const {
+    tasks,
+    filteredTasks,
+    filter,
+    setFilter,
+    searchTerm,
+    setSearchTerm,
+    sortBy,
+    setSortBy,
+    editingTaskID,
+    isDeleteModalOpen,
+    taskToDelete,
+    addTask,
+    clearCompleted,
+    toggleTaskComplete,
+    requestDelete,
+    confirmDelete,
+    cancelDelete,
+    editTask,
+    saveTask,
+  } = useTaskManager({
+    onTaskCompletionChange: handleTaskCompletionChange,
+    showToast,
   })
 
-  // useEffect for saving the quests and user data:
+  // ── Side Effect: persist user progress ────────
+  // Every time userData changes, save it to localStorage.
   useEffect(() => {
-    localStorage.setItem('userData', JSON.stringify(userData))
+    try {
+      localStorage.setItem('userData', JSON.stringify(userData))
+    } catch {
+      console.warn('Failed to save userData to localStorage.')
+    }
   }, [userData])
 
-  useEffect(() => {
-    const jsonString = JSON.stringify(tasks)
-    localStorage.setItem('quests', jsonString)
-  }, [tasks])
-
-  // useState for ToastMessage:
-  const [toast, setToast] = useState({
-    message: 'You have successfully promoted to the next rank',
-    show: false,
-  })
-
-  //function for toast message:
-  function showToast(message) {
-    setToast({ message, show: true })
-  }
-  function closeToast() {
-    setToast((prev) => ({ ...prev, show: false }))
-  }
+  // Pick the correct rank title for the current level.
   const currentRank = RANK_TITLES[Math.min(userData.level - 1, RANK_TITLES.length - 1)]
 
+  // ── JSX (UI Layout) ──────────────────────────
   return (
     <div className="min-h-screen bg-app-background py-6">
-      {/* inner div  */}
       <div className="mx-auto max-w-260 px-4 sm:px-6">
+        {/* Player stats bar at the top */}
         <GamificationHUD
           level={userData.level}
           currentXP={userData.currentXP}
@@ -249,13 +196,19 @@ export default function App() {
           streak={userData.streak}
           rankTitle={currentRank}
         />
+
+        {/* Input form to create a new quest */}
         <div className="mb-8">
           <QuestInput onAddQuest={addTask} />
         </div>
 
+        {/* Filter tabs + sort dropdown + search bar */}
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-6">
-          {/* Left: Filters */}
-          <div className="flex items-center gap-2 overflow-x-auto pb-1">
+          <div
+            className="flex items-center gap-2 overflow-x-auto pb-1"
+            role="group"
+            aria-label="Filter quests by status"
+          >
             <FilterPill
               label={'All'}
               isActive={filter === 'All'}
@@ -271,7 +224,7 @@ export default function App() {
               isActive={filter === 'Completed'}
               onClick={() => setFilter('Completed')}
             />
-            {tasks.some((t) => t.completed) && (
+            {tasks.some((task) => task.completed) && (
               <button
                 onClick={clearCompleted}
                 className="ml-2 text-[12px] font-medium text-text-secondary hover:text-priority-high transition-colors whitespace-nowrap"
@@ -281,10 +234,10 @@ export default function App() {
             )}
           </div>
 
-          {/* Right: Sort & Search */}
           <div className="flex flex-col sm:flex-row gap-3">
             <div className="relative w-full sm:w-auto">
               <select
+                aria-label="Sort quests"
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
                 className="w-full sm:w-auto h-10 rounded-md border border-border-stroke bg-surface-1 text-text-primary px-3 pr-10 appearance-none cursor-pointer focus:outline-none focus:border-purple-accent transition-colors"
@@ -297,6 +250,8 @@ export default function App() {
             <SearchInput value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
           </div>
         </div>
+
+        {/* Quest list — or an empty-state message if there are none */}
         {filteredTasks.length >= 1 ? (
           filteredTasks.map((task) => (
             <TaskCard
@@ -306,23 +261,29 @@ export default function App() {
               onDeleteTask={requestDelete}
               onEditTask={editTask}
               isEditing={task.id === editingTaskID}
-              onSaveTask={saveTasks}
+              onSaveTask={saveTask}
             />
           ))
         ) : (
-          <EmptyState />
+          <EmptyState
+            isNewUser={userData.level === 1 && userData.currentXP === 0}
+            hasFiltersApplied={tasks.length > 0}
+          />
         )}
+
+        {/* Delete confirmation modal (only visible when triggered) */}
         <DeleteModal
           isOpen={isDeleteModalOpen}
           taskTitle={taskToDelete?.title}
           onConfirm={confirmDelete}
-          onCancel={() => {
-            setIsDeleteModalOpen(false)
-            setTaskToDelete(null)
-          }}
+          onCancel={cancelDelete}
         />
+
+        {/* Toast popup — auto-hides after 2 seconds */}
         <ToastNotification message={toast.message} isVisible={toast.show} onClose={closeToast} />
       </div>
+
+      {/* Vercel analytics (production only) */}
       <SpeedInsights />
       <Analytics />
     </div>
