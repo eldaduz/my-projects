@@ -23,6 +23,8 @@ const lightTheme = EditorView.theme({
 export default function CodeEditor({ value, onChange, disabled, theme = 'dark' }) {
   const editorRef = useRef(null)
   const viewRef = useRef(null)
+  const onChangeRef = useRef(onChange)
+  onChangeRef.current = onChange
 
   useEffect(() => {
     if (!editorRef.current) return undefined
@@ -34,8 +36,8 @@ export default function CodeEditor({ value, onChange, disabled, theme = 'dark' }
         javascript({ jsx: true }),
         EditorView.lineWrapping,
         EditorView.updateListener.of((update) => {
-          if (update.docChanged && onChange) {
-            onChange(update.state.doc.toString())
+          if (update.docChanged && onChangeRef.current) {
+            onChangeRef.current(update.state.doc.toString())
           }
         }),
         EditorView.editable.of(!disabled),
@@ -47,7 +49,7 @@ export default function CodeEditor({ value, onChange, disabled, theme = 'dark' }
     viewRef.current = view
 
     return () => view.destroy()
-  }, [disabled, onChange, theme])
+  }, [disabled, theme])
 
   useEffect(() => {
     const view = viewRef.current

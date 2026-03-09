@@ -1,15 +1,22 @@
-export const LEVELS = [
-  { name: 'White Belt', xpRequired: 0, emoji: '🤍', color: 'var(--belt-white)' },
-  { name: 'Yellow Belt', xpRequired: 120, emoji: '💛', color: 'var(--belt-yellow)' },
-  { name: 'Orange Belt', xpRequired: 260, emoji: '🧡', color: 'var(--belt-orange)' },
-  { name: 'Green Belt', xpRequired: 430, emoji: '💚', color: 'var(--belt-green)' },
-  { name: 'Blue Belt', xpRequired: 620, emoji: '💙', color: 'var(--belt-blue)' },
-  { name: 'Purple Belt', xpRequired: 840, emoji: '💜', color: 'var(--belt-purple)' },
-  { name: 'Brown Belt', xpRequired: 1090, emoji: '🤎', color: 'var(--belt-brown)' },
-  { name: 'Red Belt', xpRequired: 1370, emoji: '❤️', color: 'var(--belt-red)' },
-  { name: 'Black Belt', xpRequired: 1680, emoji: '🖤', color: 'var(--belt-black)' },
-  { name: 'Master Sensei', xpRequired: 2020, emoji: '⭐', color: 'var(--belt-master)' },
+import { LEVELS as BASE_LEVELS } from '../lib/levels.js'
+
+const FRONTEND_META = [
+  { emoji: '🤍', color: 'var(--belt-white)' },
+  { emoji: '💛', color: 'var(--belt-yellow)' },
+  { emoji: '🧡', color: 'var(--belt-orange)' },
+  { emoji: '💚', color: 'var(--belt-green)' },
+  { emoji: '💙', color: 'var(--belt-blue)' },
+  { emoji: '💜', color: 'var(--belt-purple)' },
+  { emoji: '🤎', color: 'var(--belt-brown)' },
+  { emoji: '❤️', color: 'var(--belt-red)' },
+  { emoji: '🖤', color: 'var(--belt-black)' },
+  { emoji: '⭐', color: 'var(--belt-master)' },
 ]
+
+export const LEVELS = BASE_LEVELS.map((level, i) => ({
+  ...level,
+  ...FRONTEND_META[i],
+}))
 
 export function getLevelMeta(totalXp = 0) {
   let levelIndex = 0

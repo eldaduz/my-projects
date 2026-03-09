@@ -22,7 +22,7 @@ export default function AuthModal() {
         await login(email.trim(), password)
       }
     } catch (submitError) {
-      setError(submitError.message || 'Authentication failed.')
+      setError('Invalid email or password. Please try again.')
     } finally {
       setSubmitting(false)
     }
@@ -101,7 +101,11 @@ export default function AuthModal() {
             />
           </label>
 
-          {error && <p className="message error">{error}</p>}
+          {error && (
+            <p className="message error" role="alert" aria-live="assertive">
+              {error}
+            </p>
+          )}
 
           <button id="auth-submit" type="submit" className="btn-primary" disabled={submitting}>
             {submitting ? 'Loading...' : mode === 'signup' ? 'Create Account' : 'Enter Dojo'}

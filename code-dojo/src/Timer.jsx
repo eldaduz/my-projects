@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 
 function formatTime(totalSeconds) {
   const minutes = Math.floor(totalSeconds / 60)
@@ -7,6 +7,8 @@ function formatTime(totalSeconds) {
 }
 
 export default function Timer({ minutes, running, onStart, onExpire, resetKey }) {
+  const onExpireRef = useRef(onExpire)
+  onExpireRef.current = onExpire
   const totalSeconds = Math.max(0, Math.round((minutes || 0) * 60))
   const [remainingSeconds, setRemainingSeconds] = useState(totalSeconds)
 
@@ -21,7 +23,7 @@ export default function Timer({ minutes, running, onStart, onExpire, resetKey })
       setRemainingSeconds((previousSeconds) => {
         if (previousSeconds <= 1) {
           window.clearInterval(intervalId)
-          onExpire?.()
+          onExpireRef.current?.()
           return 0
         }
         return previousSeconds - 1
@@ -29,7 +31,7 @@ export default function Timer({ minutes, running, onStart, onExpire, resetKey })
     }, 1000)
 
     return () => window.clearInterval(intervalId)
-  }, [onExpire, remainingSeconds, running])
+  }, [running])
 
   const timerState = useMemo(() => {
     if (!totalSeconds) return 'success'

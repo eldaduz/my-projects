@@ -1,0 +1,648 @@
+[
+  {
+    "id": "array-sum-positive",
+    "difficulty": "easy",
+    "topics": ["array", "reduce"],
+    "category": "fundamentals",
+    "title": "Sum of Positive Numbers",
+    "description": "Write a function `sumPositives(arr)` that takes an array of numbers and returns the sum of all positive numbers.\n\nExamples:\n- sumPositives([1, -4, 7, 12]) → 20\n- sumPositives([-1, -2, -3]) → 0\n- sumPositives([]) → 0\n\nConstraints:\n- Input is always an array of numbers.",
+    "starterCode": "function sumPositives(arr) {\n  // Your code here\n}\n\nconsole.log(sumPositives([1, -4, 7, 12]));",
+    "testCases": [
+      { "input": "([1, -4, 7, 12])", "expected": "20", "description": "mixed numbers" },
+      { "input": "([-1, -2, -3])", "expected": "0", "description": "all negative" },
+      { "input": "([])", "expected": "0", "description": "empty array" }
+    ],
+    "hint": "Use the `.filter()` method to get only positive numbers, then `.reduce()` to sum them.",
+    "solutionApproach": "Filter for values > 0 then sum with reduce. O(n) time, O(1) space if filter isn't chained.",
+    "baseXp": 120,
+    "estimatedMinutes": 5
+  },
+  {
+    "id": "string-reverse",
+    "difficulty": "easy",
+    "topics": ["strings", "array"],
+    "category": "fundamentals",
+    "title": "Reverse a String",
+    "description": "Write a function `reverseString(str)` that reverses the given string.\n\nExamples:\n- reverseString('hello') → 'olleh'\n- reverseString('Dojo') → 'ojoD'\n\nConstraints:\n- Input is a string.",
+    "starterCode": "function reverseString(str) {\n  // Your code here\n}\n\nconsole.log(reverseString('hello'));",
+    "testCases": [
+      { "input": "('hello')", "expected": "'olleh'", "description": "basic string" },
+      { "input": "('')", "expected": "''", "description": "empty string" },
+      { "input": "('a')", "expected": "'a'", "description": "single char" }
+    ],
+    "hint": "Convert to array with `.split('')`, use `.reverse()`, then `.join('')` back.",
+    "solutionApproach": "Split into characters, reverse, join. O(n) time, O(n) space.",
+    "baseXp": 100,
+    "estimatedMinutes": 5
+  },
+  {
+    "id": "array-to-object",
+    "difficulty": "medium",
+    "topics": ["array", "object", "reduce"],
+    "category": "fundamentals",
+    "title": "Map Array to Object",
+    "description": "Write a function `arrayToObject(arr, key)` that converts an array of objects into an object indexed by a specific property.\n\nExamples:\n- arrayToObject([{id: 1, name: 'A'}, {id: 2, name: 'B'}], 'id') → {1: {id: 1, name: 'A'}, 2: {id: 2, name: 'B'}}\n\nConstraints:\n- The key exists in all objects.",
+    "starterCode": "function arrayToObject(arr, key) {\n  // Your code here\n}\n\nconst data = [{id: 1, name: 'Ant'}, {id: 2, name: 'Bee'}];\nconsole.log(arrayToObject(data, 'id'));",
+    "testCases": [
+      {
+        "input": "([{id: 1, name: 'A'}, {id: 2, name: 'B'}], 'id')",
+        "expected": "{'1': {id: 1, name: 'A'}, '2': {id: 2, name: 'B'}}",
+        "description": "indexed by id"
+      },
+      { "input": "([], 'id')", "expected": "{}", "description": "empty array" }
+    ],
+    "hint": "Use `.reduce()` to build the resulting object.",
+    "solutionApproach": "Iterate with reduce and assign properties. O(n) time, O(n) space.",
+    "baseXp": 170,
+    "estimatedMinutes": 15
+  },
+  {
+    "id": "async-fetch-with-retry",
+    "difficulty": "hard",
+    "topics": ["async", "promises", "recursion"],
+    "category": "async",
+    "title": "Fetch with Retry",
+    "description": "Write an async function `fetchWithRetry(url, retries)` that attempts to fetch a URL. If it fails, retry up to `retries` times before throwing an error.\n\nWait 100ms between attempts.\n\nConstraints:\n- Input `url` is a string, `retries` is a number.",
+    "starterCode": "async function fetchWithRetry(url, retries) {\n  // Your code here\n}\n\n// fetchWithRetry('https://api.example.com/data', 3).then(console.log).catch(console.error);",
+    "testCases": [
+      {
+        "input": "('valid-url', 3)",
+        "expected": "{ status: 200 }",
+        "description": "successful fetch"
+      },
+      { "input": "('invalid-url', 1)", "expected": "Error", "description": "exhausted retries" }
+    ],
+    "hint": "Wrap the fetch in a try/catch and use a loop or recursion to retry.",
+    "solutionApproach": "Use a for loop or recursion with async/await. O(r) attempts. Space depends on concurrency.",
+    "baseXp": 250,
+    "estimatedMinutes": 40
+  },
+  {
+    "id": "array-chunk-v2",
+    "difficulty": "medium",
+    "topics": ["array", "slice"],
+    "category": "fundamentals",
+    "title": "Chunk Array",
+    "description": "Write a function `chunk(arr, size)` that splits an array into groups of `size` length. The last group may have fewer elements.\n\nExamples:\n- chunk([1,2,3,4,5], 2) → [[1,2],[3,4],[5]]\n\nConstraints:\n- size is a positive integer.",
+    "starterCode": "function chunk(arr, size) {\n  // Your code here\n}\n\nconsole.log(chunk([1,2,3,4,5], 2));",
+    "testCases": [
+      {
+        "input": "([1,2,3,4,5], 2)",
+        "expected": "[[1,2],[3,4],[5]]",
+        "description": "basic chunking"
+      }
+    ],
+    "hint": "Use a for loop that increments by 'size'.",
+    "solutionApproach": "Loop through array and slice chunks. O(n) time, O(n) space.",
+    "baseXp": 180,
+    "estimatedMinutes": 15
+  },
+  {
+    "id": "prime-checker",
+    "difficulty": "easy",
+    "topics": ["algorithms", "math"],
+    "category": "algorithms",
+    "title": "Prime Number Checker",
+    "description": "Write a function `isPrime(n)` that returns true if `n` is prime, false otherwise.\n\nExamples:\n- isPrime(7) → true\n- isPrime(10) → false\n- isPrime(1) → false",
+    "starterCode": "function isPrime(n) {\n  // Your code here\n}\n\nconsole.log(isPrime(7));\nconsole.log(isPrime(10));",
+    "testCases": [
+      { "input": "(7)", "expected": "true", "description": "prime" },
+      { "input": "(10)", "expected": "false", "description": "composite" },
+      { "input": "(1)", "expected": "false", "description": "corner case 1" }
+    ],
+    "hint": "Numbers <= 1 are not prime. Check divisors up to the square root of n.",
+    "solutionApproach": "Trial division up to sqrt(n). O(sqrt(n)) time, O(1) space.",
+    "baseXp": 130,
+    "estimatedMinutes": 10
+  },
+  {
+    "id": "memoize-function",
+    "difficulty": "medium",
+    "topics": ["functions", "closure", "memoization"],
+    "category": "patterns",
+    "title": "Create a Memoize Wrapper",
+    "description": "Write a function `memoize(fn)` that returns a memoized version of the given function `fn`. If the same inputs are provided multiple times, use the cached result.\n\nConstraints:\n- Support single-argument functions for simplicity.",
+    "starterCode": "function memoize(fn) {\n  // Your code here\n}\n\nconst slow = (x) => x * 2;\nconst fast = memoize(slow);\nconsole.log(fast(5));\nconsole.log(fast(5));",
+    "testCases": [{ "input": " (x => x + 1)(5)", "expected": "6", "description": "basic result" }],
+    "hint": "Use a Map or object as a cache within the closure.",
+    "solutionApproach": "Store results in a cache keyed by argument. O(1) retrieval after first call.",
+    "baseXp": 190,
+    "estimatedMinutes": 20
+  },
+  {
+    "id": "binary-search",
+    "difficulty": "medium",
+    "topics": ["algorithms", "searching"],
+    "category": "algorithms",
+    "title": "Binary Search",
+    "description": "Write a function `binarySearch(arr, target)` that finds the index of `target` in a sorted array `arr`. Return -1 if not found.\n\nExamples:\n- binarySearch([1, 2, 3, 4], 3) → 2\n- binarySearch([1, 2, 3, 4], 5) → -1",
+    "starterCode": "function binarySearch(arr, target) {\n  // Your code here\n}\n\nconsole.log(binarySearch([1, 2, 3, 4, 10, 20], 10));",
+    "testCases": [
+      { "input": "([1, 2, 3, 4], 3)", "expected": "2", "description": "exist" },
+      { "input": "([1, 2, 3, 4], 5)", "expected": "-1", "description": "not found" }
+    ],
+    "hint": "Use left and right pointers and update the midpoint.",
+    "solutionApproach": "Divide and conquer by halving the search space. O(log n) time, O(1) space.",
+    "baseXp": 200,
+    "estimatedMinutes": 20
+  },
+  {
+    "id": "react-custom-useToggle",
+    "difficulty": "medium",
+    "topics": ["react-hooks", "useState"],
+    "category": "react",
+    "title": "Custom Hook: useToggle",
+    "description": "Create a custom hook `useToggle(initialValue)` that returns an array with a boolean state and a function to toggle that state.\n\nExamples:\n- const [isOn, toggle] = useToggle(false);\n- toggle() → state becomes true",
+    "starterCode": "function useToggle(initialValue = false) {\n  // Your code here\n}\n\n// Usage: const [on, toggle] = useToggle(false);",
+    "testCases": [
+      { "input": "(false)", "expected": "[false, f]", "description": "initially false" }
+    ],
+    "hint": "Use `useState` and return an array with the state and a function.",
+    "solutionApproach": "Wrap useState with a toggle helper. O(1) time/space.",
+    "baseXp": 160,
+    "estimatedMinutes": 10
+  },
+  {
+    "id": "deep-clone-object",
+    "difficulty": "hard",
+    "topics": ["recursion", "object"],
+    "category": "patterns",
+    "title": "Deep Clone Object",
+    "description": "Write a function `deepClone(obj)` that returns a deep copy of an object, including nested objects and arrays.\n\nConstraints:\n- Support simple JSON-serializable types (no circular refs).",
+    "starterCode": "function deepClone(obj) {\n  // Your code here\n}\n\nconst original = { a: 1, b: { c: 2 } };\nconst copy = deepClone(original);\nconsole.log(copy.b !== original.b);",
+    "testCases": [
+      {
+        "input": "({ a: { b: 1 } })",
+        "expected": "{ a: { b: 1 } }",
+        "description": "nested deep clone"
+      }
+    ],
+    "hint": "Use recursion to clone properties if they are objects.",
+    "solutionApproach": "Recursively traverse and copy properties. O(n) time/space where n is total nodes.",
+    "baseXp": 270,
+    "estimatedMinutes": 45
+  },
+  {
+    "id": "array-flatten-deep",
+    "difficulty": "hard",
+    "topics": ["array", "recursion"],
+    "category": "data-structures",
+    "title": "Deep Flatten Array",
+    "description": "Write a function `flatten(arr)` that flattens a multi-dimensional array into a single 1D array.\n\nExample:\n- flatten([1, [2, [3, 4], 5]]) → [1, 2, 3, 4, 5]",
+    "starterCode": "function flatten(arr) {\n  // Your code here\n}\n\nconsole.log(flatten([1, [2, [3, 4], 5]]));",
+    "testCases": [
+      {
+        "input": "([1, [2, [3, 4], 5]])",
+        "expected": "[1, 2, 3, 4, 5]",
+        "description": "nested array"
+      }
+    ],
+    "hint": "Iterate through the array; if an element is an array, call flatten recursively.",
+    "solutionApproach": "Recursion with array accumulation. O(n) where n is total elements.",
+    "baseXp": 240,
+    "estimatedMinutes": 30
+  },
+  {
+    "id": "event-emitter",
+    "difficulty": "hard",
+    "topics": ["patterns", "pub-sub", "class"],
+    "category": "patterns",
+    "title": "Simple Event Emitter",
+    "description": "Implement a `EventEmitter` class with `on(eventName, fn)` and `emit(eventName, data)` methods.\n\nExamples:\n- const em = new EventEmitter();\n- em.on('click', d => console.log(d));\n- em.emit('click', 'Hello');",
+    "starterCode": "class EventEmitter {\n  constructor() {\n    // Your code here\n  }\n\n  on(eventName, fn) {\n    // Your code here\n  }\n\n  emit(eventName, data) {\n    // Your code here\n  }\n}\n\nconst em = new EventEmitter();",
+    "testCases": [
+      { "input": "emit after on", "expected": "called", "description": "basic pub sub" }
+    ],
+    "hint": "Manage a map where keys are event names and values are arrays of functions.",
+    "solutionApproach": "Use an object mapping events to listener arrays. O(1) subscribe, O(L) emit.",
+    "baseXp": 280,
+    "estimatedMinutes": 50
+  },
+  {
+    "id": "intersection-of-arrays",
+    "difficulty": "easy",
+    "topics": ["array", "filter", "includes"],
+    "category": "fundamentals",
+    "title": "Intersection of Arrays",
+    "description": "Write a function `intersection(arr1, arr2)` that returns an array with elements present in both inputs.\n\nExample:\n- intersection([1, 2, 3], [2, 3, 4]) → [2, 3]",
+    "starterCode": "function intersection(arr1, arr2) {\n  // Your code here\n}\n\nconsole.log(intersection([1, 2, 3], [2, 4]));",
+    "testCases": [
+      { "input": "([1, 2], [2, 3])", "expected": "[2]", "description": "single overlap" }
+    ],
+    "hint": "Use `.filter()` on the first array and `.includes()` on the second.",
+    "solutionApproach": "Filter based on membership in second set. O(n*m) or O(n+m) with Set.",
+    "baseXp": 130,
+    "estimatedMinutes": 8
+  },
+  {
+    "id": "two-sum",
+    "difficulty": "medium",
+    "topics": ["algorithms", "two-pointers"],
+    "category": "algorithms",
+    "title": "Two Sum",
+    "description": "Given an array of integers and a target sum, return the indices of the two numbers that add up to the target.\n\nExample:\n- twoSum([2, 7, 11, 15], 9) → [0, 1]",
+    "starterCode": "function twoSum(nums, target) {\n  // Your code here\n}\n\nconsole.log(twoSum([2, 7, 11], 9));",
+    "testCases": [
+      { "input": "([2, 7, 11], 9)", "expected": "[0, 1]", "description": "basic case" }
+    ],
+    "hint": "Use a Map to store values you've seen and their indices.",
+    "solutionApproach": "One pass with a hash map. O(n) time, O(n) space.",
+    "baseXp": 190,
+    "estimatedMinutes": 25
+  },
+  {
+    "id": "balanced-parens",
+    "difficulty": "medium",
+    "topics": ["data-structures", "stack"],
+    "category": "data-structures",
+    "title": "Balanced Parentheses",
+    "description": "Write a function `isValid(str)` that checks if brackets '()', '{}', '[]' are balanced and closed in the correct order.",
+    "starterCode": "function isValid(str) {\n  // Your code here\n}\n\nconsole.log(isValid('()[]{}'));",
+    "testCases": [
+      { "input": "('([{}])')", "expected": "true", "description": "complex balance" },
+      { "input": "('(]')')", "expected": "false", "description": "mismatch" }
+    ],
+    "hint": "Use a stack to track open brackets.",
+    "solutionApproach": "Standard stack-based matching. O(n) time, O(n) space.",
+    "baseXp": 210,
+    "estimatedMinutes": 20
+  },
+  {
+    "id": "throttle-function",
+    "difficulty": "hard",
+    "topics": ["functions", "closure", "patterns"],
+    "category": "patterns",
+    "title": "Create a Throttle Function",
+    "description": "Implement `throttle(fn, limit)` which ensures that `fn` is called at most once every `limit` milliseconds.",
+    "starterCode": "function throttle(fn, limit) {\n  // Your code here\n}\n\n// const tHandler = throttle(() => console.log('Hi'), 500);",
+    "testCases": [
+      { "input": "call twice", "expected": "run once", "description": "basic throttling" }
+    ],
+    "hint": "Use a boolean flag to track if the function is currently on 'cooldown'.",
+    "solutionApproach": "Flag-based cooldown logic. O(1).",
+    "baseXp": 260,
+    "estimatedMinutes": 35
+  },
+  {
+    "id": "array-zip",
+    "difficulty": "easy",
+    "topics": ["array", "map"],
+    "category": "fundamentals",
+    "title": "Zip Arrays",
+    "description": "Write a function `zip(arr1, arr2)` that combines two arrays into an array of pairs.\n\nExample:\n- zip(['a', 'b'], [1, 2]) → [['a', 1], ['b', 2]]",
+    "starterCode": "function zip(arr1, arr2) {\n  // Your code here\n}\n\nconsole.log(zip(['id', 'val'], [5, 10]));",
+    "testCases": [
+      { "input": "(['a'], [1])", "expected": "[['a', 1]]", "description": "single element" }
+    ],
+    "hint": "Map over the first array and use the index to get the corresponding element from the second.",
+    "solutionApproach": "Map over arr1. O(min(n, m)).",
+    "baseXp": 110,
+    "estimatedMinutes": 7
+  },
+  {
+    "id": "dom-selector-all",
+    "difficulty": "easy",
+    "topics": ["dom"],
+    "category": "dom",
+    "title": "Select and Style Elements",
+    "description": "Assume a document has elements with class 'item'. Write a function `styleItems()` that finds all of them and sets their `fontWeight` to 'bold'.\n\n(No return value needed, just describe the steps).",
+    "starterCode": "function styleItems() {\n  // Your code here\n}",
+    "testCases": [{ "input": "run", "expected": "void", "description": "DOM manipulation" }],
+    "hint": "Use `document.querySelectorAll('.item')` and `forEach`.",
+    "solutionApproach": "querySelectorAll then forEach iteration. O(N).",
+    "baseXp": 100,
+    "estimatedMinutes": 5
+  },
+  {
+    "id": "palidrome-check",
+    "difficulty": "easy",
+    "topics": ["strings", "array"],
+    "category": "fundamentals",
+    "title": "Palindrome Checker",
+    "description": "Return true if the string is the same forward and backward, ignoring case and spaces.\n\nExample:\n- isPalindrome('Racecar') → true",
+    "starterCode": "function isPalindrome(str) {\n  // Your code here\n}\n\nconsole.log(isPalindrome('Racecar'));",
+    "testCases": [
+      { "input": "('Racecar')", "expected": "true", "description": "simple palindrome" },
+      { "input": "('hello')", "expected": "false", "description": "not palindrome" }
+    ],
+    "hint": "Clean the string (lowercase, remove non-alphanumeric) then check against its reversal.",
+    "solutionApproach": "Regex replace, then standard check. O(n).",
+    "baseXp": 120,
+    "estimatedMinutes": 8
+  },
+  {
+    "id": "fizz-buzz",
+    "difficulty": "easy",
+    "topics": ["fundamentals", "operators"],
+    "category": "fundamentals",
+    "title": "FizzBuzz Range",
+    "description": "Write `fizzBuzz(n)` returning an array of strings 1 to n. For multiples of 3 return 'Fizz', for 5 'Buzz', for both 'FizzBuzz'.",
+    "starterCode": "function fizzBuzz(n) {\n  // Your code here\n}\n\nconsole.log(fizzBuzz(5));",
+    "testCases": [
+      { "input": "(15)", "expected": "'FizzBuzz' at index 14", "description": "15 check" }
+    ],
+    "hint": "Use the modulo operator `%`.",
+    "solutionApproach": "Loop and conditional checks. O(n) time.",
+    "baseXp": 100,
+    "estimatedMinutes": 5
+  },
+  {
+    "id": "debounce-function",
+    "difficulty": "medium",
+    "topics": ["functions", "closure", "async"],
+    "category": "patterns",
+    "title": "Create a Debounce Function",
+    "description": "Write `debounce(fn, delay)` that delays executing `fn` until after `delay` ms have elapsed since the last time it was called.",
+    "starterCode": "function debounce(fn, delay) {\n  // Your code here\n}\n\n// window.addEventListener('resize', debounce(() => console.log('resizing'), 200));",
+    "testCases": [
+      { "input": "multiple calls", "expected": "one call", "description": "basic debouncing" }
+    ],
+    "hint": "Use `clearTimeout` and `setTimeout` inside a closure.",
+    "solutionApproach": "Timeout clearing and resetting. O(1).",
+    "baseXp": 200,
+    "estimatedMinutes": 25
+  },
+  {
+    "id": "recursive-factorial",
+    "difficulty": "easy",
+    "topics": ["recursion", "fundamentals"],
+    "category": "algorithms",
+    "title": "Recursive Factorial",
+    "description": "Calculate n! recursively.\n\nExample:\n- factorial(5) → 120",
+    "starterCode": "function factorial(n) {\n  // Your code here\n}\n\nconsole.log(factorial(5));",
+    "testCases": [
+      { "input": "(5)", "expected": "120", "description": "5!" },
+      { "input": "(0)", "expected": "1", "description": "0!" }
+    ],
+    "hint": "Base case: if n <= 1 return 1. Else return n * factorial(n-1).",
+    "solutionApproach": "Classic recursion. O(n) time/stack space.",
+    "baseXp": 110,
+    "estimatedMinutes": 5
+  },
+  {
+    "id": "array-max-value",
+    "difficulty": "easy",
+    "topics": ["array", "spread"],
+    "category": "fundamentals",
+    "title": "Find Maximum in Array",
+    "description": "Return the largest number in an array.",
+    "starterCode": "function findMax(arr) {\n  // Your code here\n}\n\nconsole.log(findMax([10, 5, 20]));",
+    "testCases": [{ "input": "([10, 5, 20])", "expected": "20", "description": "basic" }],
+    "hint": "Use `Math.max` with the spread operator `...` or `.reduce()`.",
+    "solutionApproach": "Math.max(...arr). O(n).",
+    "baseXp": 100,
+    "estimatedMinutes": 3
+  },
+  {
+    "id": "group-by",
+    "difficulty": "medium",
+    "topics": ["array", "object", "reduce"],
+    "category": "fundamentals",
+    "title": "Group By Property",
+    "description": "Write `groupBy(arr, prop)` to group a list of objects by one of its properties.\n\nExample:\n- groupBy([{t: 1}, {t: 1}, {t: 2}], 't') → {1: [{t: 1}, {t: 1}], 2: [{t: 2}]}",
+    "starterCode": "function groupBy(arr, prop) {\n  // Your code here\n}\n\nconst items = [{id: 1, type: 'fruit'}, {id: 2, type: 'veg'}];\nconsole.log(groupBy(items, 'type'));",
+    "testCases": [
+      {
+        "input": "([{a:1}, {a:1}], 'a')",
+        "expected": "{1: [{a:1}, {a:1}]}",
+        "description": "grouping"
+      }
+    ],
+    "hint": "Use `.reduce()` to initialize an object and push elements to arrays keyed by the property.",
+    "solutionApproach": "Reduce into map/object. O(n).",
+    "baseXp": 180,
+    "estimatedMinutes": 15
+  },
+  {
+    "id": "async-wait-all",
+    "difficulty": "medium",
+    "topics": ["async", "promises"],
+    "category": "async",
+    "title": "Concurrent Promises",
+    "description": "Write `waitAll(promises)` that behaves like `Promise.all()`. Wait for all to resolve or one to reject.",
+    "starterCode": "async function waitAll(promises) {\n  // Your code here\n}",
+    "testCases": [
+      {
+        "input": "resolved promises",
+        "expected": "all values",
+        "description": "custom promise all"
+      }
+    ],
+    "hint": "Manually track results and count resolutions.",
+    "solutionApproach": "Promise orchestration. O(n).",
+    "baseXp": 200,
+    "estimatedMinutes": 30
+  },
+  {
+    "id": "linked-list-reverse",
+    "difficulty": "hard",
+    "topics": ["linked-list", "data-structures"],
+    "category": "data-structures",
+    "title": "Reverse a Linked List",
+    "description": "Given a head node of a singly linked list, reverse it and return the new head.\n\nNode struct: { val, next }",
+    "starterCode": "function reverseList(head) {\n  // Your code here\n}",
+    "testCases": [],
+    "hint": "Keep track of prev, current, and next nodes.",
+    "solutionApproach": "Iterative pointer swapping. O(n) time, O(1) space.",
+    "baseXp": 280,
+    "estimatedMinutes": 45
+  },
+  {
+    "id": "binary-tree-bfs",
+    "difficulty": "medium",
+    "topics": ["tree", "bfs", "algorithms"],
+    "category": "algorithms",
+    "title": "Tree Breadth-First Search",
+    "description": "Return an array of node values from a binary tree, level by level.\n\nNode: { val, left, right }",
+    "starterCode": "function bfs(root) {\n  // Your code here\n}",
+    "testCases": [],
+    "hint": "Use a queue (array with shift/push).",
+    "solutionApproach": "Queue iteration. O(n) time/space.",
+    "baseXp": 220,
+    "estimatedMinutes": 30
+  },
+  {
+    "id": "react-useLocalStorage",
+    "difficulty": "medium",
+    "topics": ["react-hooks", "local-storage"],
+    "category": "react",
+    "title": "Hook: useLocalStorage",
+    "description": "A hook that syncs a value to localStorage.\n\n`const [val, setVal] = useLocalStorage('theme', 'dark');`",
+    "starterCode": "function useLocalStorage(key, initial) {\n  // Your code here\n}",
+    "testCases": [],
+    "hint": "Use `useState` with an initializer function to read from storage.",
+    "solutionApproach": "useState + useEffect sync. O(1).",
+    "baseXp": 190,
+    "estimatedMinutes": 20
+  },
+  {
+    "id": "anagram-check",
+    "difficulty": "easy",
+    "topics": ["strings", "sort"],
+    "category": "fundamentals",
+    "title": "Anagram Checker",
+    "description": "Return true if two strings are anagrams of each other.",
+    "starterCode": "function isAnagram(s1, s2) {\n  // Your code here\n}",
+    "testCases": [
+      { "input": "('listen', 'silent')", "expected": "true", "description": "basic anagram" }
+    ],
+    "hint": "Clean strings, sort characters, and compare.",
+    "solutionApproach": "Sort and equate. O(n log n).",
+    "baseXp": 120,
+    "estimatedMinutes": 10
+  },
+  {
+    "id": "curry-function",
+    "difficulty": "hard",
+    "topics": ["functions", "closure", "currying"],
+    "category": "patterns",
+    "title": "Currying Implementation",
+    "description": "Implement a `curry` function that transforms `f(a,b,c)` into `f(a)(b)(c)`.",
+    "starterCode": "function curry(fn) {\n  // Your code here\n}",
+    "testCases": [],
+    "hint": "Return a recursive wrapper that collects arguments until it has enough to call the original function.",
+    "solutionApproach": "Recursion on argument length. O(1) per wrap.",
+    "baseXp": 290,
+    "estimatedMinutes": 40
+  },
+  {
+    "id": "array-duplicates",
+    "difficulty": "easy",
+    "topics": ["array", "set"],
+    "category": "fundamentals",
+    "title": "Remove Duplicates",
+    "description": "Return an array with only unique values.",
+    "starterCode": "function unique(arr) {\n  // Your code here\n}",
+    "testCases": [{ "input": "([1, 1, 2, 2])", "expected": "[1, 2]", "description": "basic" }],
+    "hint": "Use the ES6 `Set` object.",
+    "solutionApproach": "Array.from(new Set(arr)). O(n).",
+    "baseXp": 100,
+    "estimatedMinutes": 5
+  },
+  {
+    "id": "react-usePrevious",
+    "difficulty": "hard",
+    "topics": ["react-hooks", "useRef"],
+    "category": "react",
+    "title": "Hook: usePrevious",
+    "description": "Create a hook that returns the value of a variable from the previous render.",
+    "starterCode": "function usePrevious(value) {\n  // Your code here\n}",
+    "testCases": [],
+    "hint": "Use `useRef` and `useEffect`.",
+    "solutionApproach": "Ref storage outside render cycle. O(1).",
+    "baseXp": 230,
+    "estimatedMinutes": 25
+  },
+  {
+    "id": "fibonacci-recursive",
+    "difficulty": "medium",
+    "topics": ["recursion", "dynamic-programming"],
+    "category": "algorithms",
+    "title": "Fibonacci (Memoized)",
+    "description": "Calculate the n-th Fibonacci number efficiently.",
+    "starterCode": "function fib(n, memo = {}) {\n  // Your code here\n}",
+    "testCases": [{ "input": "(40)", "expected": "102334155", "description": "efficiency test" }],
+    "hint": "Check the memo object before computing values.",
+    "solutionApproach": "Top-down DP. O(n) time, O(n) space.",
+    "baseXp": 180,
+    "estimatedMinutes": 15
+  },
+  {
+    "id": "camel-case-converter",
+    "difficulty": "easy",
+    "topics": ["strings", "regex"],
+    "category": "fundamentals",
+    "title": "Convert to Camel Case",
+    "description": "Convert kebab-case or snake_case to camelCase.\n\nExample:\n- toCamel('the-stealth-warrior') → 'theStealthWarrior'",
+    "starterCode": "function toCamel(str) {\n  // Your code here\n}",
+    "testCases": [{ "input": "('abc-def')", "expected": "'abcDef'", "description": "kebab" }],
+    "hint": "Use `.replace()` with a regex looking for - or _ followed by a character.",
+    "solutionApproach": "Regex with uppercase replacer. O(n).",
+    "baseXp": 120,
+    "estimatedMinutes": 10
+  },
+  {
+    "id": "async-limit-concurrency",
+    "difficulty": "hard",
+    "topics": ["async", "promises"],
+    "category": "async",
+    "title": "Async Task Pool",
+    "description": "Run an array of async tasks with a limit on how many run in parallel.",
+    "starterCode": "async function runWithLimit(tasks, limit) {\n  // Your code here\n}",
+    "testCases": [],
+    "hint": "Keep a small set of running promises and add a new one whenever one finishes.",
+    "solutionApproach": "Promise queue management. O(N).",
+    "baseXp": 300,
+    "estimatedMinutes": 60
+  },
+  {
+    "id": "array-rotate",
+    "difficulty": "medium",
+    "topics": ["array", "slice"],
+    "category": "algorithms",
+    "title": "Rotate Array",
+    "description": "Rotate an array to the right by k steps.\n\nExample:\n- rotate([1,2,3], 1) → [3,1,2]",
+    "starterCode": "function rotate(nums, k) {\n  // Your code here\n}",
+    "testCases": [{ "input": "([1,2,3], 1)", "expected": "[3,1,2]", "description": "rotate 1" }],
+    "hint": "Take the last k elements and prepend them to the rest of the array.",
+    "solutionApproach": "Splice/Slice manipulation. O(n) or O(1) space depending on approach.",
+    "baseXp": 170,
+    "estimatedMinutes": 15
+  },
+  {
+    "id": "binary-tree-height",
+    "difficulty": "easy",
+    "topics": ["tree", "recursion"],
+    "category": "algorithms",
+    "title": "Tree Maximum Depth",
+    "description": "Return the maximum depth of a binary tree.",
+    "starterCode": "function maxDepth(root) {\n  // Your code here\n}",
+    "testCases": [],
+    "hint": "Return 1 + Math.max(depthLeft, depthRight). Base case: if !root return 0.",
+    "solutionApproach": "DFS traversal. O(n).",
+    "baseXp": 120,
+    "estimatedMinutes": 10
+  },
+  {
+    "id": "react-useMap",
+    "difficulty": "medium",
+    "topics": ["react-hooks", "patterns"],
+    "category": "react",
+    "title": "Hook: useMap",
+    "description": "Manage a Map in React state with helpers for set, delete, and clear.",
+    "starterCode": "function useMap(initialEntries) {\n  // Your code here\n}",
+    "testCases": [],
+    "hint": "Use `useState` but remember to create a new Map object to trigger re-renders.",
+    "solutionApproach": "State wrapper around Map. O(1).",
+    "baseXp": 180,
+    "estimatedMinutes": 20
+  },
+  {
+    "id": "object-diff",
+    "difficulty": "hard",
+    "topics": ["object", "recursion"],
+    "category": "patterns",
+    "title": "Deep Object Difference",
+    "description": "Return an object representing the differences between two objects.",
+    "starterCode": "function diff(obj1, obj2) {\n  // Your code here\n}",
+    "testCases": [],
+    "hint": "Recursively compare keys and values.",
+    "solutionApproach": "Recursive comparison. O(Nodes).",
+    "baseXp": 260,
+    "estimatedMinutes": 40
+  },
+  {
+    "id": "sum-range-recursive",
+    "difficulty": "easy",
+    "topics": ["recursion"],
+    "category": "fundamentals",
+    "title": "Sum of Range",
+    "description": "Return sum of numbers from 1 to n recursively.",
+    "starterCode": "function sumRange(n) {\n  // Your code here\n}",
+    "testCases": [{ "input": "(3)", "expected": "6", "description": "1+2+3" }],
+    "hint": "n + sumRange(n-1).",
+    "solutionApproach": "Recursion. O(n).",
+    "baseXp": 100,
+    "estimatedMinutes": 5
+  }
+]

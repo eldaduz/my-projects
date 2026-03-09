@@ -1,42 +1,16 @@
-import { cert, getApps, initializeApp } from 'firebase-admin/app'
-import { getAuth } from 'firebase-admin/auth'
-import { FieldValue, getFirestore } from 'firebase-admin/firestore'
+import { FieldValue } from 'firebase-admin/firestore'
+import { getAdminServices } from './_firebaseAdmin.js'
+import { getLevelFromXp } from '../lib/levels.js'
 
-if (!getApps().length) {
-  const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT)
-  initializeApp({ credential: cert(serviceAccount) })
-}
-
-const db = getFirestore()
+const { adminAuth, adminDb: db } = getAdminServices()
 
 const GEMINI_ENDPOINT = (apiKey) =>
   `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`
-
-const LEVELS = [
-  { name: 'White Belt', xpRequired: 0 },
-  { name: 'Yellow Belt', xpRequired: 120 },
-  { name: 'Orange Belt', xpRequired: 260 },
-  { name: 'Green Belt', xpRequired: 430 },
-  { name: 'Blue Belt', xpRequired: 620 },
-  { name: 'Purple Belt', xpRequired: 840 },
-  { name: 'Brown Belt', xpRequired: 1090 },
-  { name: 'Red Belt', xpRequired: 1370 },
-  { name: 'Black Belt', xpRequired: 1680 },
-  { name: 'Master Sensei', xpRequired: 2020 },
-]
 
 function normalizeScore(score) {
   if (!Number.isFinite(score)) return 65
   if (score <= 10) return Math.round(score * 10)
   return Math.round(Math.max(0, Math.min(100, score)))
-}
-
-function getLevelFromXp(totalXp) {
-  let index = 0
-  for (let i = 0; i < LEVELS.length; i += 1) {
-    if (totalXp >= LEVELS[i].xpRequired) index = i
-  }
-  return { index, name: LEVELS[index].name }
 }
 
 export default async function handler(request, response) {
@@ -51,27 +25,29 @@ export default async function handler(request, response) {
     }
 
     const idToken = authHeader.split('Bearer ')[1]
-    const decodedToken = await getAuth().verifyIdToken(idToken)
+    const decodedToken = await adminAuth.verifyIdToken(idToken)
     const uid = decodedToken.uid
 
     const today = new Date().toISOString().slice(0, 10)
     const rateLimitRef = db.doc(`codeDojo_rateLimit/${uid}`)
-    const rateLimitSnapshot = await rateLimitRef.get()
 
-    if (rateLimitSnapshot.exists) {
-      const rateLimitData = rateLimitSnapshot.data()
-      if (rateLimitData.lastReset === today && rateLimitData.submissionsToday >= 50) {
+    try {
+      await db.runTransaction(async (t) => {
+        const snap = await t.get(rateLimitRef)
+        const data = snap.exists ? snap.data() : { submissionsToday: 0, lastReset: '' }
+        if (data.lastReset === today && data.submissionsToday >= 50) {
+          throw new Error('RATE_LIMIT')
+        }
+        const next = data.lastReset === today ? data.submissionsToday + 1 : 1
+        t.set(rateLimitRef, { submissionsToday: next, lastReset: today })
+      })
+    } catch (rateLimitError) {
+      if (rateLimitError.message === 'RATE_LIMIT') {
         return response
           .status(429)
           .json({ error: 'Daily limit reached (50/day). Try again tomorrow.' })
       }
-      if (rateLimitData.lastReset !== today) {
-        await rateLimitRef.set({ submissionsToday: 1, lastReset: today })
-      } else {
-        await rateLimitRef.update({ submissionsToday: FieldValue.increment(1) })
-      }
-    } else {
-      await rateLimitRef.set({ submissionsToday: 1, lastReset: today })
+      throw rateLimitError
     }
 
     const secretSnapshot = await db.doc(`codeDojo_users/${uid}/secrets/apiKey`).get()
@@ -92,6 +68,16 @@ export default async function handler(request, response) {
       baseXp,
       timeSpent,
     } = request.body
+
+    if (!exerciseId || typeof exerciseId !== 'string') {
+      return response.status(400).json({ error: 'Missing exerciseId.' })
+    }
+    if (typeof code !== 'string' || code.length > 50000) {
+      return response.status(400).json({ error: 'Invalid or too-long code submission.' })
+    }
+    if (typeof baseXp !== 'number' || baseXp < 0 || baseXp > 500) {
+      return response.status(400).json({ error: 'Invalid baseXp value.' })
+    }
 
     const prompt = `Act as a concise JavaScript code reviewer. Task: ${exerciseTitle} - ${exerciseDescription}. Test cases: ${JSON.stringify(testCases || [])}. Code: ${code}. Return strictly a JSON object with keys "score" and "feedback". Score must be an integer between 0 and 100. feedback should be readable Markdown with short sections and bullet points.`
 
@@ -192,6 +178,6 @@ export default async function handler(request, response) {
     return response.status(200).json({ score, feedback, xpEarned })
   } catch (error) {
     console.error('Evaluate error:', error)
-    return response.status(500).json({ error: error.message || 'Internal server error' })
+    return response.status(500).json({ error: 'Internal server error' })
   }
 }

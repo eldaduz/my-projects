@@ -16,6 +16,7 @@ import ExerciseManager from './ExerciseManager'
 import AdminDashboard from './AdminDashboard'
 import Leaderboard from './Leaderboard'
 import UserProfile from './UserProfile'
+import SettingsPanel from './SettingsPanel'
 
 function SplashScreen({ message }) {
   return (
@@ -77,7 +78,7 @@ export default function App() {
     refreshProfile,
     updateUserProfile,
   } = useAuth()
-  const { theme, toggleTheme, setTheme } = useTheme()
+  const { theme, setTheme } = useTheme()
 
   const [exercises, setExercises] = useState([])
   const [submissions, setSubmissions] = useState([])
@@ -102,7 +103,7 @@ export default function App() {
   const [timerResetKey, setTimerResetKey] = useState(0)
   const [attemptStartedAt, setAttemptStartedAt] = useState(null)
   const [loadingExercises, setLoadingExercises] = useState(true)
-  const [showApiKeySetup, setShowApiKeySetup] = useState(false)
+  const [showSettingsPanel, setShowSettingsPanel] = useState(false)
   const [showExerciseManager, setShowExerciseManager] = useState(false)
   const [showAdminDashboard, setShowAdminDashboard] = useState(false)
   const [showLeaderboard, setShowLeaderboard] = useState(false)
@@ -314,9 +315,11 @@ export default function App() {
     await refreshSubmissions()
   }
 
-  const handleThemeToggle = async () => {
-    toggleTheme()
-    await updateUserProfile({ theme: theme === 'dark' ? 'light' : 'dark' })
+  const handleThemeChange = async (nextTheme) => {
+    if (nextTheme === theme) return
+    setTheme(nextTheme)
+    localStorage.setItem('codeDojo_theme', nextTheme)
+    await updateUserProfile({ theme: nextTheme })
   }
 
   if (loading || profileLoading) return <SplashScreen message="Loading your dojo..." />
@@ -380,7 +383,7 @@ export default function App() {
               id="open-settings"
               type="button"
               className="icon-button"
-              onClick={() => setShowApiKeySetup(true)}
+              onClick={() => setShowSettingsPanel(true)}
               aria-label="Open settings"
             >
               ⚙
@@ -402,15 +405,6 @@ export default function App() {
               aria-label="Open leaderboard"
             >
               🏆
-            </button>
-            <button
-              id="toggle-theme"
-              type="button"
-              className="icon-button"
-              onClick={handleThemeToggle}
-              aria-label="Toggle theme"
-            >
-              {theme === 'dark' ? '☀' : '☾'}
             </button>
             {isAdmin && (
               <button
@@ -468,7 +462,7 @@ export default function App() {
             type="button"
             className="rail-button"
             aria-label="API settings"
-            onClick={() => setShowApiKeySetup(true)}
+            onClick={() => setShowSettingsPanel(true)}
           >
             ⚙
           </button>
@@ -734,29 +728,36 @@ export default function App() {
       </main>
 
       {showExerciseBrowser && (
-        <div className="modal-shell">
-          <ExerciseList
-            exercises={visibleExercises}
-            currentExerciseId={currentExercise?.id || ''}
-            statusMap={statusMap}
-            bookmarks={bookmarks}
-            filters={{ ...filters, availableTopics, availableCategories }}
-            onFilterChange={updateFilter}
-            onSelectExercise={(exerciseId) => {
-              setSelectedExerciseId(exerciseId)
-              setShowExerciseBrowser(false)
-            }}
-            onToggleBookmark={toggleBookmark}
-            onClose={() => setShowExerciseBrowser(false)}
-          />
-        </div>
+        <ExerciseList
+          exercises={visibleExercises}
+          currentExerciseId={currentExercise?.id || ''}
+          statusMap={statusMap}
+          bookmarks={bookmarks}
+          filters={{ ...filters, availableTopics, availableCategories }}
+          onFilterChange={updateFilter}
+          onSelectExercise={(exerciseId) => {
+            setSelectedExerciseId(exerciseId)
+            setShowExerciseBrowser(false)
+          }}
+          onToggleBookmark={toggleBookmark}
+          onClose={() => setShowExerciseBrowser(false)}
+        />
       )}
 
-      {showApiKeySetup && (
-        <div className="modal-shell">
-          <ApiKeySetup embedded onClose={() => setShowApiKeySetup(false)} />
-        </div>
+      {showSettingsPanel && (
+        <SettingsPanel
+          profile={profile}
+          theme={theme}
+          onSaveTheme={handleThemeChange}
+          onSaveDisplayName={async (displayName) => {
+            await updateUserProfile({
+              displayName: displayName.trim() || profile?.displayName || 'Anonymous',
+            })
+          }}
+          onClose={() => setShowSettingsPanel(false)}
+        />
       )}
+
       {showExerciseManager && (
         <ExerciseManager
           exercises={exercises}
@@ -775,17 +776,6 @@ export default function App() {
           profile={profile}
           submissions={sortedSubmissions}
           bookmarkedExercises={bookmarkedExercises}
-          theme={theme}
-          toggleTheme={handleThemeToggle}
-          onSaveDisplayName={async (displayName) => {
-            await updateUserProfile({
-              displayName: displayName.trim() || profile?.displayName || 'Anonymous',
-            })
-          }}
-          onOpenApiKeySetup={() => {
-            setShowProfile(false)
-            setShowApiKeySetup(true)
-          }}
           onClose={() => setShowProfile(false)}
         />
       )}

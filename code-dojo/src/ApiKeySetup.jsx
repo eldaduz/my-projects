@@ -120,7 +120,11 @@ export default function ApiKeySetup({ embedded = false, onClose }) {
               </button>
             </div>
           </label>
-          {error && <p className="message error">{error}</p>}
+          {error && (
+            <p className="message error" role="alert" aria-live="assertive">
+              {error}
+            </p>
+          )}
           <div className="inline-actions">
             <button
               id="api-key-save"

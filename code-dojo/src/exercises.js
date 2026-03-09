@@ -1,6 +1,15 @@
 import { collection, deleteDoc, doc, getDocs, setDoc, writeBatch } from 'firebase/firestore'
 import { db } from './firebase'
 
+const REQUIRED_IMPORT_FIELDS = [
+  'id',
+  'title',
+  'difficulty',
+  'category',
+  'description',
+  'starterCode',
+]
+
 export const BUILT_IN_EXERCISES = [
   {
     id: 'easy-1',
@@ -163,12 +172,56 @@ export const addExercise = (exercise) =>
   setDoc(doc(db, 'codeDojo_exercises', exercise.id), exercise)
 export const deleteExercise = (id) => deleteDoc(doc(db, 'codeDojo_exercises', id))
 
-export async function importExercises(exercises) {
-  const batch = writeBatch(db)
-  exercises.forEach((exercise) => {
-    batch.set(doc(db, 'codeDojo_exercises', exercise.id), exercise)
+export function normalizeExerciseImportPayload(payload) {
+  const entries = Array.isArray(payload) ? payload : [payload]
+
+  if (!entries.length) {
+    throw new Error('Imported file must contain at least one exercise.')
+  }
+
+  return entries.map((exercise, index) => {
+    if (!exercise || typeof exercise !== 'object' || Array.isArray(exercise)) {
+      throw new Error(`Exercise ${index + 1} must be a JSON object.`)
+    }
+
+    const missingField = REQUIRED_IMPORT_FIELDS.find(
+      (field) => !String(exercise[field] ?? '').trim(),
+    )
+    if (missingField) {
+      throw new Error(`Exercise ${index + 1} is missing required field "${missingField}".`)
+    }
+
+    return {
+      ...exercise,
+      id: String(exercise.id).trim(),
+      title: String(exercise.title).trim(),
+      difficulty: String(exercise.difficulty).trim(),
+      category: String(exercise.category).trim(),
+      description: String(exercise.description).trim(),
+      starterCode: String(exercise.starterCode),
+      topics: Array.isArray(exercise.topics)
+        ? exercise.topics.map((topic) => String(topic).trim()).filter(Boolean)
+        : [],
+      testCases: Array.isArray(exercise.testCases) ? exercise.testCases : [],
+      hint: String(exercise.hint || ''),
+      solutionApproach: String(exercise.solutionApproach || ''),
+      baseXp: Number(exercise.baseXp) || 120,
+      estimatedMinutes: Number(exercise.estimatedMinutes) || 10,
+      solvedCount: Number(exercise.solvedCount) || 0,
+      attemptCount: Number(exercise.attemptCount) || 0,
+    }
   })
-  await batch.commit()
+}
+
+export async function importExercises(exercises) {
+  const BATCH_SIZE = 500
+  for (let i = 0; i < exercises.length; i += BATCH_SIZE) {
+    const batch = writeBatch(db)
+    exercises.slice(i, i + BATCH_SIZE).forEach((exercise) => {
+      batch.set(doc(db, 'codeDojo_exercises', exercise.id), exercise)
+    })
+    await batch.commit()
+  }
 }
 
 export async function exportExercises() {

@@ -1,5 +1,12 @@
 import { useMemo, useState } from 'react'
-import { addExercise, deleteExercise, exportExercises, importExercises } from './exercises'
+import {
+  addExercise,
+  deleteExercise,
+  exportExercises,
+  importExercises,
+  normalizeExerciseImportPayload,
+} from './exercises'
+import ModalShell from './ModalShell'
 
 const CATEGORIES = [
   'fundamentals',
@@ -124,13 +131,16 @@ export default function ExerciseManager({ exercises, onClose, onRefresh }) {
   const handleImport = async (event) => {
     const file = event.target.files?.[0]
     if (!file) return
-    const parsed = JSON.parse(await file.text())
-    if (!Array.isArray(parsed)) {
-      setError('Imported JSON must be an array of exercises.')
-      return
+    setError('')
+    try {
+      const parsed = JSON.parse(await file.text())
+      await importExercises(normalizeExerciseImportPayload(parsed))
+      await onRefresh()
+    } catch (importError) {
+      setError(importError.message || 'Failed to import exercises.')
+    } finally {
+      event.target.value = ''
     }
-    await importExercises(parsed)
-    await onRefresh()
   }
 
   const handleExport = async () => {
@@ -145,188 +155,186 @@ export default function ExerciseManager({ exercises, onClose, onRefresh }) {
   }
 
   return (
-    <div className="modal-shell">
-      <section className="exercise-manager panel">
-        <div className="section-heading">
-          <div>
-            <span className="eyebrow">Admin</span>
-            <h2>Exercise Manager</h2>
-          </div>
-          <button id="exercise-manager-close" type="button" className="btn-ghost" onClick={onClose}>
-            Close
+    <ModalShell className="exercise-manager panel" onClose={onClose}>
+      <div className="section-heading">
+        <div>
+          <span className="eyebrow">Admin</span>
+          <h2>Exercise Manager</h2>
+        </div>
+        <button id="exercise-manager-close" type="button" className="btn-ghost" onClick={onClose}>
+          Close
+        </button>
+      </div>
+
+      <form className="manager-grid" onSubmit={handleCreate}>
+        <label className="field">
+          <span>Title</span>
+          <input
+            id="exercise-form-title"
+            value={form.title}
+            onChange={(event) => updateForm('title', event.target.value)}
+          />
+        </label>
+        <label className="field">
+          <span>Id</span>
+          <input
+            id="exercise-form-id"
+            value={form.id}
+            onChange={(event) => updateForm('id', event.target.value)}
+          />
+        </label>
+        <label className="field">
+          <span>Difficulty</span>
+          <select
+            id="exercise-form-difficulty"
+            value={form.difficulty}
+            onChange={(event) => updateForm('difficulty', event.target.value)}
+          >
+            <option value="easy">easy</option>
+            <option value="medium">medium</option>
+            <option value="hard">hard</option>
+          </select>
+        </label>
+        <label className="field">
+          <span>Category</span>
+          <select
+            id="exercise-form-category"
+            value={form.category}
+            onChange={(event) => updateForm('category', event.target.value)}
+          >
+            {CATEGORIES.map((category) => (
+              <option key={category} value={category}>
+                {category}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="field field--wide">
+          <span>Topics</span>
+          <input
+            id="exercise-form-topics"
+            value={form.topics}
+            onChange={(event) => updateForm('topics', event.target.value)}
+          />
+        </label>
+        <label className="field field--wide">
+          <span>Description</span>
+          <textarea
+            id="exercise-form-description"
+            rows="4"
+            value={form.description}
+            onChange={(event) => updateForm('description', event.target.value)}
+          />
+        </label>
+        <label className="field field--wide">
+          <span>Starter Code</span>
+          <textarea
+            id="exercise-form-starter-code"
+            rows="5"
+            value={form.starterCode}
+            onChange={(event) => updateForm('starterCode', event.target.value)}
+          />
+        </label>
+        <label className="field field--wide">
+          <span>Test Cases (JSON)</span>
+          <textarea
+            id="exercise-form-test-cases"
+            rows="5"
+            value={form.testCases}
+            onChange={(event) => updateForm('testCases', event.target.value)}
+          />
+        </label>
+        <label className="field">
+          <span>Hint</span>
+          <input
+            id="exercise-form-hint"
+            value={form.hint}
+            onChange={(event) => updateForm('hint', event.target.value)}
+          />
+        </label>
+        <label className="field field--wide">
+          <span>Solution Approach</span>
+          <textarea
+            id="exercise-form-solution"
+            rows="4"
+            value={form.solutionApproach}
+            onChange={(event) => updateForm('solutionApproach', event.target.value)}
+          />
+        </label>
+        <label className="field">
+          <span>Base XP</span>
+          <input
+            id="exercise-form-base-xp"
+            type="number"
+            value={form.baseXp}
+            onChange={(event) => updateForm('baseXp', event.target.value)}
+          />
+        </label>
+        <label className="field">
+          <span>Estimated Minutes</span>
+          <input
+            id="exercise-form-estimated-minutes"
+            type="number"
+            value={form.estimatedMinutes}
+            onChange={(event) => updateForm('estimatedMinutes', event.target.value)}
+          />
+        </label>
+
+        {error && <p className="message error field--wide">{error}</p>}
+
+        <div className="inline-actions field--wide">
+          <button id="exercise-form-submit" type="submit" className="btn-primary" disabled={busy}>
+            {busy ? 'Saving...' : 'Add Exercise'}
+          </button>
+          <label className="btn-secondary file-button" htmlFor="exercise-import-file">
+            Import JSON
+          </label>
+          <input
+            id="exercise-import-file"
+            type="file"
+            accept=".json,application/json"
+            hidden
+            onChange={handleImport}
+          />
+          <button
+            id="exercise-export"
+            type="button"
+            className="btn-secondary"
+            onClick={handleExport}
+          >
+            Export JSON
           </button>
         </div>
+      </form>
 
-        <form className="manager-grid" onSubmit={handleCreate}>
-          <label className="field">
-            <span>Title</span>
-            <input
-              id="exercise-form-title"
-              value={form.title}
-              onChange={(event) => updateForm('title', event.target.value)}
-            />
-          </label>
-          <label className="field">
-            <span>Id</span>
-            <input
-              id="exercise-form-id"
-              value={form.id}
-              onChange={(event) => updateForm('id', event.target.value)}
-            />
-          </label>
-          <label className="field">
-            <span>Difficulty</span>
-            <select
-              id="exercise-form-difficulty"
-              value={form.difficulty}
-              onChange={(event) => updateForm('difficulty', event.target.value)}
-            >
-              <option value="easy">easy</option>
-              <option value="medium">medium</option>
-              <option value="hard">hard</option>
-            </select>
-          </label>
-          <label className="field">
-            <span>Category</span>
-            <select
-              id="exercise-form-category"
-              value={form.category}
-              onChange={(event) => updateForm('category', event.target.value)}
-            >
-              {CATEGORIES.map((category) => (
-                <option key={category} value={category}>
-                  {category}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="field field--wide">
-            <span>Topics</span>
-            <input
-              id="exercise-form-topics"
-              value={form.topics}
-              onChange={(event) => updateForm('topics', event.target.value)}
-            />
-          </label>
-          <label className="field field--wide">
-            <span>Description</span>
-            <textarea
-              id="exercise-form-description"
-              rows="4"
-              value={form.description}
-              onChange={(event) => updateForm('description', event.target.value)}
-            />
-          </label>
-          <label className="field field--wide">
-            <span>Starter Code</span>
-            <textarea
-              id="exercise-form-starter-code"
-              rows="5"
-              value={form.starterCode}
-              onChange={(event) => updateForm('starterCode', event.target.value)}
-            />
-          </label>
-          <label className="field field--wide">
-            <span>Test Cases (JSON)</span>
-            <textarea
-              id="exercise-form-test-cases"
-              rows="5"
-              value={form.testCases}
-              onChange={(event) => updateForm('testCases', event.target.value)}
-            />
-          </label>
-          <label className="field">
-            <span>Hint</span>
-            <input
-              id="exercise-form-hint"
-              value={form.hint}
-              onChange={(event) => updateForm('hint', event.target.value)}
-            />
-          </label>
-          <label className="field field--wide">
-            <span>Solution Approach</span>
-            <textarea
-              id="exercise-form-solution"
-              rows="4"
-              value={form.solutionApproach}
-              onChange={(event) => updateForm('solutionApproach', event.target.value)}
-            />
-          </label>
-          <label className="field">
-            <span>Base XP</span>
-            <input
-              id="exercise-form-base-xp"
-              type="number"
-              value={form.baseXp}
-              onChange={(event) => updateForm('baseXp', event.target.value)}
-            />
-          </label>
-          <label className="field">
-            <span>Estimated Minutes</span>
-            <input
-              id="exercise-form-estimated-minutes"
-              type="number"
-              value={form.estimatedMinutes}
-              onChange={(event) => updateForm('estimatedMinutes', event.target.value)}
-            />
-          </label>
-
-          {error && <p className="message error field--wide">{error}</p>}
-
-          <div className="inline-actions field--wide">
-            <button id="exercise-form-submit" type="submit" className="btn-primary" disabled={busy}>
-              {busy ? 'Saving...' : 'Add Exercise'}
-            </button>
-            <label className="btn-secondary file-button" htmlFor="exercise-import-file">
-              Import JSON
-            </label>
-            <input
-              id="exercise-import-file"
-              type="file"
-              accept=".json,application/json"
-              hidden
-              onChange={handleImport}
-            />
-            <button
-              id="exercise-export"
-              type="button"
-              className="btn-secondary"
-              onClick={handleExport}
-            >
-              Export JSON
-            </button>
-          </div>
-        </form>
-
-        <div className="stack-md">
-          {sortedExercises.map((exercise) => (
-            <article key={exercise.id} className="exercise-card admin-card">
-              <div className="exercise-card__top">
-                <div>
-                  <strong>{exercise.title}</strong>
-                  <div className="meta-row">
-                    <span className={`difficulty-pill ${exercise.difficulty}`}>
-                      {exercise.difficulty}
-                    </span>
-                    <span>{exercise.category}</span>
-                    <span>
-                      {exercise.solvedCount || 0}/{exercise.attemptCount || 0} solved
-                    </span>
-                  </div>
+      <div className="stack-md">
+        {sortedExercises.map((exercise) => (
+          <article key={exercise.id} className="exercise-card admin-card">
+            <div className="exercise-card__top">
+              <div>
+                <strong>{exercise.title}</strong>
+                <div className="meta-row">
+                  <span className={`difficulty-pill ${exercise.difficulty}`}>
+                    {exercise.difficulty}
+                  </span>
+                  <span>{exercise.category}</span>
+                  <span>
+                    {exercise.solvedCount || 0}/{exercise.attemptCount || 0} solved
+                  </span>
                 </div>
-                <button
-                  id={`delete-${exercise.id}`}
-                  type="button"
-                  className="btn-ghost danger"
-                  onClick={() => handleDelete(exercise.id)}
-                >
-                  Delete
-                </button>
               </div>
-            </article>
-          ))}
-        </div>
-      </section>
-    </div>
+              <button
+                id={`delete-${exercise.id}`}
+                type="button"
+                className="btn-ghost danger"
+                onClick={() => handleDelete(exercise.id)}
+              >
+                Delete
+              </button>
+            </div>
+          </article>
+        ))}
+      </div>
+    </ModalShell>
   )
 }

@@ -1,3 +1,5 @@
+import ModalShell from './ModalShell'
+
 function getSolveRate(exercise) {
   if (!exercise.attemptCount) return 'New'
   return `${Math.round((exercise.solvedCount / exercise.attemptCount) * 100)}% solve rate`
@@ -21,7 +23,7 @@ export default function ExerciseList({
   }
 
   return (
-    <section className="exercise-list panel">
+    <ModalShell className="exercise-list panel" onClose={onClose}>
       <div className="section-heading">
         <div>
           <span className="eyebrow">Exercise Browser</span>
@@ -145,7 +147,7 @@ export default function ExerciseList({
                       <span className={`difficulty-pill ${exercise.difficulty}`}>
                         {exercise.difficulty}
                       </span>
-                      <span>{exercise.topics.slice(0, 2).join(', ')}</span>
+                      <span>{(exercise.topics || []).slice(0, 2).join(', ')}</span>
                     </div>
                   </div>
                 </button>
@@ -167,7 +169,7 @@ export default function ExerciseList({
               </div>
 
               <div className="tag-row">
-                {exercise.topics.map((topic) => (
+                {(exercise.topics || []).map((topic) => (
                   <span key={topic} className="tag">
                     {topic}
                   </span>
@@ -177,6 +179,6 @@ export default function ExerciseList({
           )
         })}
       </div>
-    </section>
+    </ModalShell>
   )
 }
