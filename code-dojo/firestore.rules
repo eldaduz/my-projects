@@ -1,0 +1,35 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isAdmin() {
+      return request.auth != null && request.auth.token.email == 'eldaduz@gmail.com';
+    }
+
+    match /codeDojo_exercises/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /codeDojo_users/{uid} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+      allow read: if isAdmin();
+    }
+
+    match /codeDojo_users/{uid}/submissions/{sub} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+      allow read: if isAdmin();
+    }
+
+    match /codeDojo_users/{uid}/secrets/{doc} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+    }
+
+    match /codeDojo_leaderboard/{uid} {
+      allow read: if true;
+    }
+
+    match /codeDojo_rateLimit/{uid} {
+      allow read, write: if false;
+    }
+  }
+}

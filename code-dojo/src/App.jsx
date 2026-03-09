@@ -1,463 +1,794 @@
-import { useEffect, useMemo, useState } from 'react';
-import ReactMarkdown from 'react-markdown';
+import { useEffect, useMemo, useState } from 'react'
+import ReactMarkdown from 'react-markdown'
+import { getIdToken } from 'firebase/auth'
+import { addDoc, collection, getDocs, serverTimestamp } from 'firebase/firestore'
+import { useAuth } from './AuthContext'
+import { useTheme } from './ThemeContext'
+import { auth, db } from './firebase'
+import { fetchExercises } from './exercises'
+import { getLevelMeta } from './levels'
+import AuthModal from './AuthModal'
+import ApiKeySetup from './ApiKeySetup'
+import CodeEditor from './CodeEditor'
+import Timer from './Timer'
+import ExerciseList from './ExerciseList'
+import ExerciseManager from './ExerciseManager'
+import AdminDashboard from './AdminDashboard'
+import Leaderboard from './Leaderboard'
+import UserProfile from './UserProfile'
 
-const API_KEY_STORAGE = 'codeDojoGeminiApiKey';
-const SESSION_STORAGE = 'codeDojoSession';
+function SplashScreen({ message }) {
+  return (
+    <div className="screen-center">
+      <section className="panel loading-panel">
+        <span className="eyebrow">Code Dojo</span>
+        <h1>{message}</h1>
+      </section>
+    </div>
+  )
+}
 
-const LEVELS = [
-  { name: 'Stacktrace Squire', xpRequired: 0 },
-  { name: 'Console Conjurer', xpRequired: 120 },
-  { name: 'Regex Rogue', xpRequired: 260 },
-  { name: 'Null Pointer Nomad', xpRequired: 430 },
-  { name: 'Callback Commander', xpRequired: 620 },
-  { name: 'Async Astronaut', xpRequired: 840 },
-  { name: 'State Machine Sage', xpRequired: 1090 },
-  { name: 'Refactor Revenant', xpRequired: 1370 },
-  { name: 'Quantum Committer', xpRequired: 1680 },
-  { name: 'Galactic Code Archon', xpRequired: 2020 },
-];
+function scoreClass(score) {
+  if (score >= 80) return 'excellent'
+  if (score >= 50) return 'warning'
+  return 'danger'
+}
 
-const EXERCISES = [
-  {
-    id: 'easy-1',
-    difficulty: 'easy',
-    topics: ['array', 'map'],
-    title: 'Map Names to Uppercase',
-    description:
-      'Given an array of names, return a new array where every name is uppercase using map.',
-    starterCode: `function toUpperNames(names) {\n  // Your code here\n}\n\nconsole.log(toUpperNames(["ada", "grace", "linus"]));`,
-    hint: 'Use names.map(name => name.toUpperCase()).',
-    baseXp: 120,
-  },
-  {
-    id: 'easy-2',
-    difficulty: 'easy',
-    topics: ['array', 'filter'],
-    title: 'Filter Passing Scores',
-    description: 'Return only scores that are >= 60 from an array using filter.',
-    starterCode: `function getPassing(scores) {\n  // Your code here\n}\n\nconsole.log(getPassing([45, 78, 61, 20, 90]));`,
-    hint: 'Use scores.filter(score => score >= 60).',
-    baseXp: 120,
-  },
-  {
-    id: 'medium-1',
-    difficulty: 'medium',
-    topics: ['array', 'reduce'],
-    title: 'Group Todos by Status',
-    description:
-      'Convert an array of todo objects into an object with keys "done" and "pending", each containing arrays of todo titles.',
-    starterCode: `function groupTodos(todos) {\n  // Your code here\n}\n\nconst todos = [\n  { title: "ship", done: true },\n  { title: "test", done: false },\n  { title: "docs", done: true }\n];\n\nconsole.log(groupTodos(todos));`,
-    hint: 'Use reduce and push title into done/pending arrays.',
-    baseXp: 180,
-  },
-  {
-    id: 'medium-2',
-    difficulty: 'medium',
-    topics: ['function', 'async'],
-    title: 'Debounce Utility',
-    description:
-      'Implement debounce(fn, delay) that postpones function execution until after delay ms have elapsed since the last call.',
-    starterCode: `function debounce(fn, delay) {\n  // Your code here\n}\n\nconst ping = debounce(() => console.log("ping"), 200);`,
-    hint: 'Return a function; clearTimeout + setTimeout inside closure.',
-    baseXp: 180,
-  },
-  {
-    id: 'hard-1',
-    difficulty: 'hard',
-    topics: ['recursion', 'memoization'],
-    title: 'Memoized Fibonacci',
-    description:
-      'Write a memoized fibonacci function fib(n) that returns nth Fibonacci number with efficient recursion.',
-    starterCode: `function createFib() {\n  // Your code here\n}\n\nconst fib = createFib();\nconsole.log(fib(20));`,
-    hint: 'Use a cache object in closure and recursive helper.',
-    baseXp: 240,
-  },
-  {
-    id: 'hard-2',
-    difficulty: 'hard',
-    topics: ['events', 'data-structure'],
-    title: 'Tiny Event Emitter',
-    description:
-      'Create an emitter with on(event, cb), off(event, cb), and emit(event, payload). Keep listeners isolated per event.',
-    starterCode: `function createEmitter() {\n  // Your code here\n}\n\nconst emitter = createEmitter();`,
-    hint: 'Store listeners in a map keyed by event name.',
-    baseXp: 240,
-  },
-];
+function submissionTime(value) {
+  if (!value) return 0
+  if (typeof value.toDate === 'function') return value.toDate().getTime()
+  return new Date(value).getTime()
+}
 
-const DIFFICULTIES = ['easy', 'medium', 'hard'];
-const TOPICS = [...new Set(EXERCISES.flatMap((exercise) => exercise.topics))].sort();
+function getSubmissionErrorMessage(error) {
+  const message = error?.message || ''
 
-function getLevelMeta(totalXp) {
-  let levelIndex = 0;
-  for (let i = 0; i < LEVELS.length; i += 1) {
-    if (totalXp >= LEVELS[i].xpRequired) levelIndex = i;
+  if (message.includes('Must be logged in')) {
+    return 'Your session expired. Sign in again and retry the submission.'
   }
 
-  const current = LEVELS[levelIndex];
-  const next = LEVELS[levelIndex + 1] ?? null;
-  const progress = next
-    ? ((totalXp - current.xpRequired) / (next.xpRequired - current.xpRequired)) * 100
-    : 100;
-
-  return { levelIndex, current, next, progress: Math.min(100, Math.max(0, progress)) };
-}
-
-function shuffle(array) {
-  const copy = [...array];
-  for (let i = copy.length - 1; i > 0; i -= 1) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [copy[i], copy[j]] = [copy[j], copy[i]];
-  }
-  return copy;
-}
-
-function buildSession({ selectedDifficulties, selectedTopics }) {
-  const filtered = EXERCISES.filter((exercise) => {
-    const difficultyMatch = selectedDifficulties.includes(exercise.difficulty);
-    const topicMatch = selectedTopics.length === 0 || exercise.topics.some((topic) => selectedTopics.includes(topic));
-    return difficultyMatch && topicMatch;
-  });
-
-  return shuffle(filtered).slice(0, 6);
-}
-
-const GEMINI_ENDPOINT = (apiKey) =>
-  `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
-
-async function verifyApiKey(apiKey) {
-  const response = await fetch(GEMINI_ENDPOINT(apiKey), {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      contents: [{ parts: [{ text: 'reply with ok' }] }],
-    }),
-  });
-
-  if (!response.ok) {
-    throw new Error('API key verification failed.');
-  }
-}
-  
-async function evaluateCode({ apiKey, exercise, code, hintUsed }) {
-  const task = `${exercise.title} - ${exercise.description} (Hint used: ${hintUsed ? 'yes' : 'no'})`;
-
-  const response = await fetch(GEMINI_ENDPOINT(apiKey), {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      contents: [
-        {
-          parts: [
-            {
-              text: `Act as a concise JavaScript code reviewer. Task: ${task}. Code: ${code}. Return strictly a JSON object with keys "score" and "feedback". The "score" field MUST be a single integer between 0 and 100 representing the total percentage (e.g., 85, 100). NEVER return a score out of 5. feedback should be readable Markdown with short sections and bullet points.`,
-            },
-          ],
-        },
-      ],
-    }),
-  });
-
-  if (!response.ok) {
-    throw new Error('Evaluation request failed.');
+  if (message.includes('backend is not reachable') || message.includes('internal')) {
+    return 'The evaluation backend is not reachable yet. Check the Vercel API deployment.'
   }
 
-  const data = await response.json();
-  const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim() ?? '';
-
-  let parsed;
-  try {
-    parsed = JSON.parse(rawText.replace(/^```json\n?|\n?```$/g, ''));
-  } catch {
-    parsed = { score: 65, feedback: rawText || 'Evaluation returned an unexpected response format.' };
+  if (message.includes('invalid')) {
+    return 'Your Gemini API key was rejected. Update it in Settings and try again.'
   }
 
-  return {
-    score: normalizeScore(parsed.score),
-    feedback: formatFeedbackText(parsed.feedback || rawText),
-  };
-}
+  if (message.includes('Daily limit reached')) {
+    return 'Daily submission limit reached. Try again tomorrow.'
+  }
 
-function normalizeScore(score) {
-  if (!Number.isFinite(score)) return 65;
-  if (score <= 10) return Math.round(score * 10);
-  return Math.round(Math.max(0, Math.min(100, score)));
-}
+  if (message.includes('No API key saved')) {
+    return 'No API key is saved for this account. Open Settings and save one first.'
+  }
 
-function formatFeedbackText(feedback) {
-  if (!feedback) return 'No feedback received.';
-  return String(feedback).replace(/^```markdown\n?|\n?```$/g, '').trim();
+  return message || 'Submission failed.'
 }
 
 export default function App() {
-  const [apiKey, setApiKey] = useState(() => localStorage.getItem(API_KEY_STORAGE) || '');
-  const [showModal, setShowModal] = useState(() => !localStorage.getItem(API_KEY_STORAGE));
+  const {
+    user,
+    profile,
+    loading,
+    profileLoading,
+    isAdmin,
+    logout,
+    refreshProfile,
+    updateUserProfile,
+  } = useAuth()
+  const { theme, toggleTheme, setTheme } = useTheme()
 
-  const [selectedDifficulties, setSelectedDifficulties] = useState([...DIFFICULTIES]);
-  const [selectedTopics, setSelectedTopics] = useState([]);
+  const [exercises, setExercises] = useState([])
+  const [submissions, setSubmissions] = useState([])
+  const [selectedExerciseId, setSelectedExerciseId] = useState('')
+  const [filters, setFilters] = useState({
+    search: '',
+    difficulty: 'all',
+    topic: 'all',
+    category: 'all',
+    status: 'all',
+    bookmarkedOnly: false,
+  })
+  const [code, setCode] = useState('')
+  const [showHint, setShowHint] = useState(false)
+  const [hintUsed, setHintUsed] = useState(false)
+  const [showSolution, setShowSolution] = useState(false)
+  const [score, setScore] = useState(null)
+  const [feedback, setFeedback] = useState('')
+  const [earnedXp, setEarnedXp] = useState(null)
+  const [submitting, setSubmitting] = useState(false)
+  const [timerRunning, setTimerRunning] = useState(false)
+  const [timerResetKey, setTimerResetKey] = useState(0)
+  const [attemptStartedAt, setAttemptStartedAt] = useState(null)
+  const [loadingExercises, setLoadingExercises] = useState(true)
+  const [showApiKeySetup, setShowApiKeySetup] = useState(false)
+  const [showExerciseManager, setShowExerciseManager] = useState(false)
+  const [showAdminDashboard, setShowAdminDashboard] = useState(false)
+  const [showLeaderboard, setShowLeaderboard] = useState(false)
+  const [showProfile, setShowProfile] = useState(false)
+  const [showExerciseBrowser, setShowExerciseBrowser] = useState(false)
 
-  const [sessionExercises, setSessionExercises] = useState(() => buildSession({ selectedDifficulties: DIFFICULTIES, selectedTopics: [] }));
-  const [exerciseIndex, setExerciseIndex] = useState(0);
-  const [code, setCode] = useState(sessionExercises[0]?.starterCode ?? '');
-  const [score, setScore] = useState(null);
-  const [feedback, setFeedback] = useState('');
-  const [isVerifying, setIsVerifying] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [modalKeyInput, setModalKeyInput] = useState(apiKey);
-  const [modalError, setModalError] = useState('');
-  const [hintUsed, setHintUsed] = useState(false);
-  const [showHint, setShowHint] = useState(false);
-  const [totalXp, setTotalXp] = useState(0);
-  const [earnedXp, setEarnedXp] = useState(null);
+  const availableTopics = useMemo(
+    () => [...new Set(exercises.flatMap((exercise) => exercise.topics || []))].sort(),
+    [exercises],
+  )
+  const availableCategories = useMemo(
+    () => [...new Set(exercises.map((exercise) => exercise.category).filter(Boolean))].sort(),
+    [exercises],
+  )
 
-  const currentExercise = sessionExercises[exerciseIndex] ?? null;
-  const levelMeta = useMemo(() => getLevelMeta(totalXp), [totalXp]);
-  const unlockedLevels = levelMeta.levelIndex + 1;
+  const statusMap = useMemo(
+    () =>
+      submissions.reduce((map, submission) => {
+        const nextStatus = submission.score >= 60 ? 'solved' : 'attempted'
+        if (map[submission.exerciseId] !== 'solved') {
+          map[submission.exerciseId] = nextStatus
+        }
+        return map
+      }, {}),
+    [submissions],
+  )
+
+  const visibleExercises = useMemo(() => {
+    const bookmarks = profile?.bookmarks || []
+    return exercises.filter((exercise) => {
+      const titleMatch = exercise.title.toLowerCase().includes(filters.search.toLowerCase())
+      const difficultyMatch =
+        filters.difficulty === 'all' || exercise.difficulty === filters.difficulty
+      const topicMatch = filters.topic === 'all' || exercise.topics?.includes(filters.topic)
+      const categoryMatch = filters.category === 'all' || exercise.category === filters.category
+      const statusMatch =
+        filters.status === 'all' || (statusMap[exercise.id] || 'unsolved') === filters.status
+      const bookmarkMatch = !filters.bookmarkedOnly || bookmarks.includes(exercise.id)
+      return (
+        titleMatch && difficultyMatch && topicMatch && categoryMatch && statusMatch && bookmarkMatch
+      )
+    })
+  }, [exercises, filters, profile?.bookmarks, statusMap])
+
+  const currentExercise = useMemo(
+    () =>
+      visibleExercises.find((exercise) => exercise.id === selectedExerciseId) ||
+      visibleExercises[0] ||
+      null,
+    [selectedExerciseId, visibleExercises],
+  )
+
+  const sortedSubmissions = useMemo(
+    () =>
+      [...submissions].sort(
+        (left, right) => submissionTime(right.submittedAt) - submissionTime(left.submittedAt),
+      ),
+    [submissions],
+  )
+
+  const levelMeta = getLevelMeta(profile?.totalXp || 0)
+  const bookmarks = profile?.bookmarks || []
+  const bookmarkedExercises = exercises.filter((exercise) => bookmarks.includes(exercise.id))
+  const nextLevelXp = levelMeta.next ? levelMeta.next.xpRequired : profile?.totalXp || 0
+  const currentLevelXp = levelMeta.current?.xpRequired || 0
+  const xpIntoLevel = Math.max(0, (profile?.totalXp || 0) - currentLevelXp)
+  const xpNeededForLevel = Math.max(1, nextLevelXp - currentLevelXp)
+  const exampleCase = currentExercise?.testCases?.[0] || null
+  const currentStatus = currentExercise ? statusMap[currentExercise.id] || 'unsolved' : 'unsolved'
+
+  const refreshExercises = async () => {
+    setLoadingExercises(true)
+    const nextExercises = await fetchExercises()
+    setExercises(nextExercises)
+    setLoadingExercises(false)
+  }
+
+  const refreshSubmissions = async () => {
+    if (!user) return
+    const snapshot = await getDocs(collection(db, 'codeDojo_users', user.uid, 'submissions'))
+    setSubmissions(
+      snapshot.docs.map((documentSnapshot) => ({
+        id: documentSnapshot.id,
+        ...documentSnapshot.data(),
+      })),
+    )
+  }
 
   useEffect(() => {
-    localStorage.setItem(SESSION_STORAGE, JSON.stringify(sessionExercises));
-  }, [sessionExercises]);
+    refreshExercises().catch(() => setLoadingExercises(false))
+  }, [])
 
   useEffect(() => {
-    const refreshed = buildSession({ selectedDifficulties, selectedTopics });
-    setSessionExercises(refreshed);
-    setExerciseIndex(0);
-    setCode(refreshed[0]?.starterCode ?? '');
-    setScore(null);
-    setFeedback('');
-    setHintUsed(false);
-    setShowHint(false);
-    setEarnedXp(null);
-  }, [selectedDifficulties, selectedTopics]);
+    if (!user) {
+      setSubmissions([])
+      return
+    }
+    refreshSubmissions().catch(() => setSubmissions([]))
+  }, [user])
 
-  const resetForExercise = (nextIndex) => {
-    const item = sessionExercises[nextIndex];
-    setCode(item?.starterCode ?? '');
-    setScore(null);
-    setFeedback('');
-    setHintUsed(false);
-    setShowHint(false);
-    setEarnedXp(null);
-  };
+  useEffect(() => {
+    if (profile?.theme && profile.theme !== theme) {
+      setTheme(profile.theme)
+    }
+  }, [profile?.theme, setTheme, theme])
 
-  const handleDifficultyToggle = (difficulty) => {
-    setSelectedDifficulties((prev) =>
-      prev.includes(difficulty) ? prev.filter((item) => item !== difficulty) : [...prev, difficulty]
-    );
-  };
-
-  const handleTopicToggle = (topic) => {
-    setSelectedTopics((prev) =>
-      prev.includes(topic) ? prev.filter((item) => item !== topic) : [...prev, topic]
-    );
-  };
-
-  const handleVerify = async () => {
-    setModalError('');
-    if (!modalKeyInput.trim()) {
-      setModalError('Please enter a Gemini API key.');
-      return;
+  useEffect(() => {
+    if (!currentExercise) {
+      setSelectedExerciseId('')
+      setCode('')
+      return
     }
 
-    setIsVerifying(true);
-    try {
-      await verifyApiKey(modalKeyInput.trim());
-      localStorage.setItem(API_KEY_STORAGE, modalKeyInput.trim());
-      setApiKey(modalKeyInput.trim());
-      setShowModal(false);
-    } catch (error) {
-      setModalError(error.message);
-    } finally {
-      setIsVerifying(false);
-    }
-  };
+    setSelectedExerciseId(currentExercise.id)
+    setCode(currentExercise.starterCode || '')
+    setShowHint(false)
+    setHintUsed(false)
+    setShowSolution(false)
+    setScore(null)
+    setFeedback('')
+    setEarnedXp(null)
+    setTimerRunning(false)
+    setAttemptStartedAt(null)
+    setTimerResetKey((currentKey) => currentKey + 1)
+  }, [currentExercise?.id])
+
+  const updateFilter = (field, value) => {
+    setFilters((currentFilters) => ({ ...currentFilters, [field]: value }))
+  }
+
+  const toggleBookmark = async (exerciseId) => {
+    const nextBookmarks = bookmarks.includes(exerciseId)
+      ? bookmarks.filter((bookmarkId) => bookmarkId !== exerciseId)
+      : [...bookmarks, exerciseId]
+    await updateUserProfile({ bookmarks: nextBookmarks })
+  }
+
+  const handleStartTimer = () => {
+    setTimerRunning(true)
+    setAttemptStartedAt(Date.now())
+  }
 
   const handleSubmit = async () => {
-    if (!apiKey || !currentExercise) return;
+    if (!currentExercise || !user) return
 
-    setIsSubmitting(true);
+    setSubmitting(true)
     try {
-      const result = await evaluateCode({
-        apiKey,
-        exercise: currentExercise,
-        code,
-        hintUsed,
-      });
-      setScore(result.score);
-      setFeedback(result.feedback);
-      const xpMultiplier = hintUsed ? 0.65 : 1;
-      const gained = Math.round(currentExercise.baseXp * (result.score / 100) * xpMultiplier);
-      setTotalXp((prev) => prev + gained);
-      setEarnedXp(gained);
-    } catch (error) {
-      setFeedback(error.message);
-      setScore(0);
-      setEarnedXp(0);
+      const token = await getIdToken(auth.currentUser)
+      const response = await fetch('/api/evaluate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          exerciseId: currentExercise.id,
+          exerciseTitle: currentExercise.title,
+          exerciseDescription: currentExercise.description,
+          testCases: currentExercise.testCases || [],
+          code,
+          hintUsed,
+          baseXp: currentExercise.baseXp,
+          timeSpent: attemptStartedAt ? Math.round((Date.now() - attemptStartedAt) / 1000) : null,
+        }),
+      })
+
+      const result = await response.json()
+      if (!response.ok) {
+        throw new Error(result.error || 'Evaluation failed')
+      }
+
+      setScore(result.score)
+      setFeedback(result.feedback)
+      setEarnedXp(result.xpEarned)
+      setShowSolution(result.score < 50)
+      setTimerRunning(false)
+
+      await Promise.all([refreshSubmissions(), refreshProfile(), refreshExercises()])
+    } catch (submitError) {
+      setScore(0)
+      setFeedback(getSubmissionErrorMessage(submitError))
+      setEarnedXp(0)
+      setShowSolution(true)
     } finally {
-      setIsSubmitting(false);
+      setSubmitting(false)
     }
-  };
+  }
 
-  const handleNext = () => {
-    if (!sessionExercises.length) return;
+  const handleGiveUp = async () => {
+    if (!currentExercise || !user) return
 
-    const next = exerciseIndex + 1;
-    if (next >= sessionExercises.length) {
-      const refreshed = buildSession({ selectedDifficulties, selectedTopics });
-      setSessionExercises(refreshed);
-      setExerciseIndex(0);
-      setCode(refreshed[0]?.starterCode ?? '');
-      setScore(null);
-      setFeedback('');
-      setHintUsed(false);
-      setShowHint(false);
-      setEarnedXp(null);
-      return;
-    }
+    await addDoc(collection(db, 'codeDojo_users', user.uid, 'submissions'), {
+      exerciseId: currentExercise.id,
+      exerciseTitle: currentExercise.title,
+      code,
+      score: 0,
+      feedback: 'You gave up on this exercise. Review the solution approach and try again.',
+      xpEarned: 0,
+      hintUsed,
+      timeSpent: attemptStartedAt ? Math.round((Date.now() - attemptStartedAt) / 1000) : null,
+      submittedAt: serverTimestamp(),
+    })
 
-    setExerciseIndex(next);
-    resetForExercise(next);
-  };
+    setScore(0)
+    setFeedback('You gave up on this exercise. Review the solution approach and try again.')
+    setEarnedXp(0)
+    setShowSolution(true)
+    setTimerRunning(false)
+    await refreshSubmissions()
+  }
+
+  const handleThemeToggle = async () => {
+    toggleTheme()
+    await updateUserProfile({ theme: theme === 'dark' ? 'light' : 'dark' })
+  }
+
+  if (loading || profileLoading) return <SplashScreen message="Loading your dojo..." />
+  if (!user) return <AuthModal />
+  if (!profile?.hasApiKey) {
+    return (
+      <div className="screen-center">
+        <ApiKeySetup />
+      </div>
+    )
+  }
 
   return (
     <div className="app-shell">
-      {showModal && (
-        <div className="modal-overlay">
-          <div className="modal-card">
-            <h2>Welcome to Code Dojo</h2>
-            <p>
-              Add your Gemini API key to unlock AI code feedback. Get one from{' '}
-              <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noreferrer">
-                Google AI Studio
-              </a>
-              .
-            </p>
-            <input
-              type="password"
-              value={modalKeyInput}
-              onChange={(event) => setModalKeyInput(event.target.value)}
-              placeholder="Paste Gemini API key"
-            />
-            {modalError && <p className="error-text">{modalError}</p>}
-            <button onClick={handleVerify} disabled={isVerifying}>
-              {isVerifying ? 'Verifying...' : 'Save & Verify'}
+      <header className="topbar panel">
+        <div className="topbar-brand">
+          <div className="brand-mark" aria-hidden="true">
+            🏯
+          </div>
+          <div className="brand-copy">
+            <span className="eyebrow">Code Dojo</span>
+            <strong>Code Dojo</strong>
+          </div>
+        </div>
+
+        <div className="topbar-progress">
+          <div className="level-badge" style={{ '--belt-color': levelMeta.current.color }}>
+            <span>Lv {levelMeta.levelIndex + 1}</span>
+          </div>
+          <div className="progress-cluster">
+            <div className="progress-copy">
+              <span>
+                {xpIntoLevel.toLocaleString()} / {xpNeededForLevel.toLocaleString()} XP
+              </span>
+              <span>
+                {levelMeta.next
+                  ? `${nextLevelXp - (profile?.totalXp || 0)} XP to next belt`
+                  : 'Max rank reached'}
+              </span>
+            </div>
+            <div className="progress-track hud-progress">
+              <div className="progress-fill shimmer" style={{ width: `${levelMeta.progress}%` }} />
+            </div>
+          </div>
+          <div className="today-xp">+{profile?.xpToday || 0} XP Today</div>
+        </div>
+
+        <div className="topbar-actions">
+          <div className="user-chip">
+            <div className="user-avatar" aria-hidden="true">
+              {profile?.displayName?.[0]?.toUpperCase() || user.email?.[0]?.toUpperCase() || 'C'}
+            </div>
+            <div>
+              <strong>{profile?.displayName || user.email?.split('@')[0] || 'Code Ninja'}</strong>
+              <span className="streak-badge">🔥 {profile?.streak || 0} daily streak</span>
+            </div>
+          </div>
+
+          <div className="topbar-controls">
+            <button
+              id="open-settings"
+              type="button"
+              className="icon-button"
+              onClick={() => setShowApiKeySetup(true)}
+              aria-label="Open settings"
+            >
+              ⚙
+            </button>
+            <button
+              id="open-profile"
+              type="button"
+              className="icon-button"
+              onClick={() => setShowProfile(true)}
+              aria-label="Open profile"
+            >
+              👤
+            </button>
+            <button
+              id="open-leaderboard"
+              type="button"
+              className="icon-button"
+              onClick={() => setShowLeaderboard(true)}
+              aria-label="Open leaderboard"
+            >
+              🏆
+            </button>
+            <button
+              id="toggle-theme"
+              type="button"
+              className="icon-button"
+              onClick={handleThemeToggle}
+              aria-label="Toggle theme"
+            >
+              {theme === 'dark' ? '☀' : '☾'}
+            </button>
+            {isAdmin && (
+              <button
+                id="open-admin-dashboard"
+                type="button"
+                className="admin-pill"
+                onClick={() => setShowAdminDashboard(true)}
+              >
+                Admin
+              </button>
+            )}
+            <button
+              id="logout-button"
+              type="button"
+              className="icon-button"
+              onClick={logout}
+              aria-label="Log out"
+            >
+              ↗
             </button>
           </div>
-        </div>
-      )}
-
-      <header className="topbar">
-        <div>
-          <h1>Code Dojo</h1>
-          <p>
-            {currentExercise ? currentExercise.difficulty.toUpperCase() : 'FILTERED'} challenge • Exercise{' '}
-            {sessionExercises.length ? exerciseIndex + 1 : 0}/{sessionExercises.length}
-          </p>
-        </div>
-        <div className="hud">
-          <p className="level-title">
-            Level {levelMeta.levelIndex + 1}: {levelMeta.current.name}
-          </p>
-          <p className="xp-line">
-            {totalXp} XP{' '}
-            {levelMeta.next
-              ? `• ${levelMeta.next.xpRequired - totalXp} XP to ${levelMeta.next.name}`
-              : '• Max level reached'}
-          </p>
-          <div className="progress-track">
-            <div className="progress-fill" style={{ width: `${levelMeta.progress}%` }} />
-          </div>
-          <div className="level-chip-row">
-            {LEVELS.map((level, index) => {
-              const status = index <= levelMeta.levelIndex ? 'unlocked' : 'locked';
-              return (
-                <span key={level.name} className={`level-chip ${status}`}>
-                  L{index + 1}
-                </span>
-              );
-            })}
-          </div>
-          <p className="level-unlock-line">{unlockedLevels}/{LEVELS.length} levels unlocked</p>
         </div>
       </header>
 
-      <main className="split-layout">
-        <section className="task-panel">
-          <div className="filter-block">
-            <h3>Difficulty</h3>
-            <div className="filter-chip-row">
-              {DIFFICULTIES.map((difficulty) => (
-                <button
-                  key={difficulty}
-                  className={`filter-chip ${selectedDifficulties.includes(difficulty) ? 'active' : ''}`}
-                  onClick={() => handleDifficultyToggle(difficulty)}
-                >
-                  {difficulty}
-                </button>
-              ))}
-            </div>
-            <h3>Topics</h3>
-            <div className="filter-chip-row">
-              {TOPICS.map((topic) => (
-                <button
-                  key={topic}
-                  className={`filter-chip ${selectedTopics.includes(topic) ? 'active' : ''}`}
-                  onClick={() => handleTopicToggle(topic)}
-                >
-                  {topic}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {currentExercise ? (
-            <>
-              <h2>{currentExercise.title}</h2>
-              <p>{currentExercise.description}</p>
-              <button
-                className="ghost-btn"
-                onClick={() => {
-                  setShowHint((prev) => !prev);
-                  setHintUsed(true);
-                }}
-              >
-                {showHint ? 'Hide Hint' : 'Use Hint (-35% XP)'}
-              </button>
-              {showHint && <div className="hint-box">💡 {currentExercise.hint}</div>}
-            </>
-          ) : (
-            <div className="hint-box">No questions match your filters. Select more difficulties/topics.</div>
+      <main className="workspace-shell">
+        <aside className="sidebar-rail panel" aria-label="Workspace navigation">
+          <button type="button" className="rail-button active" aria-label="Home">
+            🏠
+          </button>
+          <button
+            type="button"
+            className="rail-button"
+            aria-label="Exercise browser"
+            onClick={() => setShowExerciseBrowser(true)}
+          >
+            📋
+          </button>
+          <button
+            type="button"
+            className="rail-button"
+            aria-label="Leaderboard"
+            onClick={() => setShowLeaderboard(true)}
+          >
+            🏆
+          </button>
+          <button
+            type="button"
+            className="rail-button"
+            aria-label="Profile"
+            onClick={() => setShowProfile(true)}
+          >
+            👤
+          </button>
+          <button
+            type="button"
+            className="rail-button"
+            aria-label="API settings"
+            onClick={() => setShowApiKeySetup(true)}
+          >
+            ⚙
+          </button>
+          {isAdmin && (
+            <button
+              type="button"
+              className="rail-button"
+              aria-label="Exercise manager"
+              onClick={() => setShowExerciseManager(true)}
+            >
+              👑
+            </button>
           )}
-        </section>
+        </aside>
 
-        <section className="editor-panel">
-          <textarea
-            value={code}
-            onChange={(event) => setCode(event.target.value)}
-            spellCheck="false"
-            disabled={!currentExercise}
-          />
-          <div className="controls">
-            <button onClick={handleSubmit} disabled={isSubmitting || !apiKey || !currentExercise}>
-              {isSubmitting ? 'Evaluating...' : 'Submit'}
-            </button>
-            <button className="ghost-btn" onClick={handleNext} disabled={!currentExercise}>
-              Next Question
-            </button>
-          </div>
-          {score !== null && (
-            <div className="feedback-card">
-              <h3>Score: {score}/100</h3>
-              <div className="feedback-body">
-                <ReactMarkdown>{feedback}</ReactMarkdown>
+        <div className="split-layout">
+          <section className="panel exercise-detail surface-card">
+            {loadingExercises ? (
+              <p className="message">Loading exercises...</p>
+            ) : currentExercise ? (
+              <>
+                <div className="detail-block detail-title">
+                  <div className="detail-label-row">
+                    <span className="detail-icon" aria-hidden="true">
+                      📋
+                    </span>
+                    <span className="eyebrow">Title:</span>
+                  </div>
+                  <span className={`difficulty-pill ${currentExercise.difficulty}`}>
+                    {currentExercise.difficulty}
+                  </span>
+                </div>
+                <h2 className="exercise-title">{currentExercise.title}</h2>
+                <div className="detail-divider" />
+
+                <div className="detail-block">
+                  <div className="detail-label-row">
+                    <span className="detail-icon" aria-hidden="true">
+                      ☆
+                    </span>
+                    <span className="eyebrow">Points:</span>
+                  </div>
+                  <p className="points-value">{currentExercise.baseXp} XP</p>
+                </div>
+
+                <div className="detail-block">
+                  <div className="detail-label-row">
+                    <span className="detail-icon" aria-hidden="true">
+                      ◇
+                    </span>
+                    <span className="eyebrow">Topic Tags:</span>
+                  </div>
+                  <div className="tag-row">
+                    {currentExercise.topics.map((topic) => (
+                      <span key={topic} className="tag">
+                        {topic}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="detail-block">
+                  <div className="detail-label-row">
+                    <span className="detail-icon" aria-hidden="true">
+                      ◎
+                    </span>
+                    <span className="eyebrow">Objective:</span>
+                  </div>
+                  <p className="detail-copy">{currentExercise.description}</p>
+                </div>
+
+                {exampleCase && (
+                  <div className="detail-block">
+                    <div className="detail-label-row">
+                      <span className="detail-icon" aria-hidden="true">
+                        ⌘
+                      </span>
+                      <span className="eyebrow">Examples:</span>
+                    </div>
+                    <pre className="example-block">
+                      <code>
+                        Input: {exampleCase.input}
+                        {'\n'}
+                        Output: {exampleCase.expected}
+                      </code>
+                    </pre>
+                  </div>
+                )}
+
+                <div className="detail-block">
+                  <div className="detail-label-row">
+                    <span className="detail-icon" aria-hidden="true">
+                      ◌
+                    </span>
+                    <span className="eyebrow">Constraints:</span>
+                  </div>
+                  <ul className="constraint-list">
+                    <li>Estimated time: {currentExercise.estimatedMinutes} minutes</li>
+                    <li>Status: {currentStatus}</li>
+                    <li>Category: {currentExercise.category}</li>
+                  </ul>
+                </div>
+
+                <Timer
+                  minutes={currentExercise.estimatedMinutes}
+                  running={timerRunning}
+                  onStart={handleStartTimer}
+                  onExpire={() => setFeedback('Timer expired. You can still submit your work.')}
+                  resetKey={timerResetKey}
+                />
+
+                <div className="detail-footer">
+                  <button
+                    id="toggle-hint"
+                    type="button"
+                    className="btn-ghost"
+                    onClick={() => {
+                      setShowHint((currentValue) => !currentValue)
+                      setHintUsed(true)
+                    }}
+                  >
+                    💡 {showHint ? 'Hide Hint' : 'Use Hint (-35% XP)'}
+                  </button>
+                  <button
+                    id={`bookmark-selected-${currentExercise.id}`}
+                    type="button"
+                    className={`bookmark-button detail-bookmark ${bookmarks.includes(currentExercise.id) ? 'active' : ''}`}
+                    onClick={() => toggleBookmark(currentExercise.id)}
+                  >
+                    {bookmarks.includes(currentExercise.id) ? '♥' : '♡'}
+                  </button>
+                  <button
+                    id="give-up"
+                    type="button"
+                    className="btn-ghost danger"
+                    onClick={handleGiveUp}
+                  >
+                    Give Up
+                  </button>
+                </div>
+
+                {showHint && <div className="hint-box">💡 {currentExercise.hint}</div>}
+                {showSolution && (
+                  <div className="solution-box">
+                    <h3>Solution Approach</h3>
+                    <p>{currentExercise.solutionApproach}</p>
+                  </div>
+                )}
+              </>
+            ) : (
+              <p className="message">No exercises match the current filters.</p>
+            )}
+          </section>
+
+          <section className="editor-panel panel surface-card">
+            <div className="editor-header">
+              <div>
+                <span className="eyebrow">Code Editor</span>
+                <h2>
+                  {currentExercise ? `${currentExercise.title} Challenge` : 'Select an exercise'}
+                </h2>
               </div>
-              {earnedXp !== null && (
-                <p className="xp-earned">+{earnedXp} XP earned {hintUsed ? '(hint penalty applied)' : ''}</p>
-              )}
+              <div className="controls">
+                <button type="button" className="btn-primary muted" disabled>
+                  ▶ Run Code
+                </button>
+                <button
+                  id="submit-solution"
+                  type="button"
+                  className="btn-secondary accent"
+                  onClick={handleSubmit}
+                  disabled={submitting || !currentExercise}
+                >
+                  {submitting ? 'Submitting...' : 'Submit'}
+                </button>
+                <button
+                  id="next-exercise"
+                  type="button"
+                  className="btn-ghost"
+                  onClick={() => {
+                    const currentIndex = visibleExercises.findIndex(
+                      (exercise) => exercise.id === currentExercise?.id,
+                    )
+                    const nextExercise = visibleExercises[currentIndex + 1] || visibleExercises[0]
+                    setSelectedExerciseId(nextExercise?.id || '')
+                  }}
+                  disabled={!currentExercise || visibleExercises.length === 0}
+                >
+                  Next
+                </button>
+              </div>
             </div>
-          )}
-        </section>
+
+            <div className="editor-surface">
+              <div className="editor-toolbar">
+                <div className="window-dots" aria-hidden="true">
+                  <span className="dot red" />
+                  <span className="dot yellow" />
+                  <span className="dot green" />
+                </div>
+                <button
+                  type="button"
+                  className="icon-button copy-button"
+                  onClick={() => navigator.clipboard?.writeText(code)}
+                  aria-label="Copy code"
+                >
+                  ⧉
+                </button>
+              </div>
+
+              <CodeEditor
+                value={code}
+                onChange={setCode}
+                disabled={!currentExercise}
+                theme={theme}
+              />
+
+              <section className="console-panel">
+                {score !== null ? (
+                  <section className="feedback-card">
+                    <div className="feedback-header">
+                      <div
+                        className={`score-ring ${scoreClass(score)}`}
+                        style={{ '--score-value': `${score}%` }}
+                      >
+                        <strong>{score}</strong>
+                        <span>Score</span>
+                      </div>
+                      <div>
+                        <h3>Results</h3>
+                        <p className="xp-earned">
+                          +{earnedXp || 0} XP {profile?.streak >= 7 ? '• streak bonus active' : ''}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="feedback-body markdown-body">
+                      <ReactMarkdown>{feedback}</ReactMarkdown>
+                    </div>
+                  </section>
+                ) : (
+                  <>
+                    <div className="console-label">&gt;_ Console</div>
+                    <div className="console-history">
+                      {sortedSubmissions.slice(0, 3).map((submission) => (
+                        <article key={submission.id} className="history-card compact">
+                          <div className="meta-row">
+                            <strong>{submission.exerciseTitle}</strong>
+                            <span>{submission.score}/100</span>
+                            <span>+{submission.xpEarned || 0} XP</span>
+                          </div>
+                        </article>
+                      ))}
+                      {sortedSubmissions.length === 0 && (
+                        <p className="message">Run your first submission to see results here.</p>
+                      )}
+                    </div>
+                  </>
+                )}
+              </section>
+            </div>
+          </section>
+        </div>
       </main>
+
+      {showExerciseBrowser && (
+        <div className="modal-shell">
+          <ExerciseList
+            exercises={visibleExercises}
+            currentExerciseId={currentExercise?.id || ''}
+            statusMap={statusMap}
+            bookmarks={bookmarks}
+            filters={{ ...filters, availableTopics, availableCategories }}
+            onFilterChange={updateFilter}
+            onSelectExercise={(exerciseId) => {
+              setSelectedExerciseId(exerciseId)
+              setShowExerciseBrowser(false)
+            }}
+            onToggleBookmark={toggleBookmark}
+            onClose={() => setShowExerciseBrowser(false)}
+          />
+        </div>
+      )}
+
+      {showApiKeySetup && (
+        <div className="modal-shell">
+          <ApiKeySetup embedded onClose={() => setShowApiKeySetup(false)} />
+        </div>
+      )}
+      {showExerciseManager && (
+        <ExerciseManager
+          exercises={exercises}
+          onClose={() => setShowExerciseManager(false)}
+          onRefresh={refreshExercises}
+        />
+      )}
+      {showAdminDashboard && (
+        <AdminDashboard onClose={() => setShowAdminDashboard(false)} theme={theme} />
+      )}
+      {showLeaderboard && (
+        <Leaderboard currentUserId={user.uid} onClose={() => setShowLeaderboard(false)} />
+      )}
+      {showProfile && (
+        <UserProfile
+          profile={profile}
+          submissions={sortedSubmissions}
+          bookmarkedExercises={bookmarkedExercises}
+          theme={theme}
+          toggleTheme={handleThemeToggle}
+          onSaveDisplayName={async (displayName) => {
+            await updateUserProfile({
+              displayName: displayName.trim() || profile?.displayName || 'Anonymous',
+            })
+          }}
+          onOpenApiKeySetup={() => {
+            setShowProfile(false)
+            setShowApiKeySetup(true)
+          }}
+          onClose={() => setShowProfile(false)}
+        />
+      )}
     </div>
-  );
+  )
 }

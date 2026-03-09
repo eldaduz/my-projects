@@ -40,3 +40,4 @@ Users solve JavaScript exercises, submit answers for Gemini-powered feedback, an
 
 ```bash
 npm install
+```
