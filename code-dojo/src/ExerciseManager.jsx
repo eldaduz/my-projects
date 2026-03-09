@@ -155,18 +155,23 @@ export default function ExerciseManager({ exercises, onClose, onRefresh }) {
   }
 
   return (
-    <ModalShell className="exercise-manager panel" onClose={onClose}>
-      <div className="section-heading">
-        <div>
+    <ModalShell className="exercise-manager panel" size="lg" onClose={onClose}>
+      <div className="modal-header">
+        <div className="modal-heading">
           <span className="eyebrow">Admin</span>
           <h2>Exercise Manager</h2>
         </div>
-        <button id="exercise-manager-close" type="button" className="btn-ghost" onClick={onClose}>
+        <button
+          id="exercise-manager-close"
+          type="button"
+          className="btn-ghost modal-close-button"
+          onClick={onClose}
+        >
           Close
         </button>
       </div>
 
-      <form className="manager-grid" onSubmit={handleCreate}>
+      <form className="manager-grid modal-section" onSubmit={handleCreate}>
         <label className="field">
           <span>Title</span>
           <input
@@ -307,7 +312,7 @@ export default function ExerciseManager({ exercises, onClose, onRefresh }) {
         </div>
       </form>
 
-      <div className="stack-md">
+      <div className="modal-body stack-md">
         {sortedExercises.map((exercise) => (
           <article key={exercise.id} className="exercise-card admin-card">
             <div className="exercise-card__top">

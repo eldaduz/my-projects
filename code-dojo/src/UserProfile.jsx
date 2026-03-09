@@ -28,18 +28,23 @@ export default function UserProfile({ profile, submissions, bookmarkedExercises,
   }, [submissions])
 
   return (
-    <ModalShell className="user-profile panel" onClose={onClose}>
-      <div className="section-heading">
-        <div>
+    <ModalShell className="user-profile panel" size="lg" onClose={onClose}>
+      <div className="modal-header">
+        <div className="modal-heading">
           <span className="eyebrow">Profile</span>
           <h2>{profile?.displayName || 'Anonymous'}</h2>
         </div>
-        <button id="profile-close" type="button" className="btn-ghost" onClick={onClose}>
+        <button
+          id="profile-close"
+          type="button"
+          className="btn-ghost modal-close-button"
+          onClick={onClose}
+        >
           Close
         </button>
       </div>
 
-      <div className="profile-stats-grid">
+      <div className="modal-section profile-stats-grid">
         <article className="stat-card">
           <span className="eyebrow">XP</span>
           <strong>{profile?.totalXp || 0}</strong>
@@ -60,7 +65,7 @@ export default function UserProfile({ profile, submissions, bookmarkedExercises,
         </article>
       </div>
 
-      <div className="profile-layout">
+      <div className="modal-section profile-layout">
         <section className="panel subtle">
           <h3>Bookmarks</h3>
           {bookmarkedExercises.length === 0 ? (
@@ -85,8 +90,8 @@ export default function UserProfile({ profile, submissions, bookmarkedExercises,
         </section>
       </div>
 
-      <section className="panel subtle">
-        <div className="section-heading">
+      <section className="panel subtle modal-section">
+        <div className="modal-subheader">
           <h3>Submission History</h3>
           <div className="inline-actions">
             <button

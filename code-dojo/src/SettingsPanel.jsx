@@ -28,18 +28,23 @@ export default function SettingsPanel({ profile, theme, onSaveTheme, onSaveDispl
   }
 
   return (
-    <ModalShell className="settings-panel panel" onClose={onClose}>
-      <div className="section-heading">
-        <div>
+    <ModalShell className="settings-panel panel" size="md" onClose={onClose}>
+      <div className="modal-header">
+        <div className="modal-heading">
           <span className="eyebrow">Settings</span>
           <h2>Preferences</h2>
         </div>
-        <button id="settings-close" type="button" className="btn-ghost" onClick={onClose}>
+        <button
+          id="settings-close"
+          type="button"
+          className="btn-ghost modal-close-button"
+          onClick={onClose}
+        >
           Close
         </button>
       </div>
 
-      <div className="settings-grid">
+      <div className="modal-section settings-grid">
         <section className="panel subtle settings-card">
           <h3>Appearance</h3>
           <p className="message">Choose how Code Dojo looks for this account.</p>
@@ -91,9 +96,9 @@ export default function SettingsPanel({ profile, theme, onSaveTheme, onSaveDispl
         </section>
       </div>
 
-      <section className="panel subtle settings-card">
-        <div className="section-heading">
-          <div>
+      <section className="panel subtle settings-card modal-section">
+        <div className="modal-subheader">
+          <div className="modal-heading">
             <h3>Gemini API Key</h3>
             <p className={`message ${profile?.hasApiKey ? 'success' : 'warning'}`}>
               {profile?.hasApiKey ? 'API key saved for this account.' : 'No API key saved yet.'}

@@ -23,18 +23,23 @@ export default function Leaderboard({ currentUserId, onClose }) {
   }, [])
 
   return (
-    <ModalShell className="leaderboard panel" onClose={onClose}>
-      <div className="section-heading">
-        <div>
+    <ModalShell className="leaderboard panel" size="md" onClose={onClose}>
+      <div className="modal-header">
+        <div className="modal-heading">
           <span className="eyebrow">Social</span>
           <h2>Leaderboard</h2>
         </div>
-        <button id="leaderboard-close" type="button" className="btn-ghost" onClick={onClose}>
+        <button
+          id="leaderboard-close"
+          type="button"
+          className="btn-ghost modal-close-button"
+          onClick={onClose}
+        >
           Close
         </button>
       </div>
 
-      <div className="table-shell">
+      <div className="modal-body table-shell">
         <table>
           <caption className="sr-only">Leaderboard rankings by XP</caption>
           <thead>

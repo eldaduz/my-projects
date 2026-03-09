@@ -16,6 +16,7 @@ export default function ExerciseList({
   onToggleBookmark,
   onClose,
 }) {
+  const tooltipProps = (label) => ({ title: label, 'data-tooltip': label })
   const statusIcon = {
     solved: '✅',
     attempted: '🟡',
@@ -23,103 +24,105 @@ export default function ExerciseList({
   }
 
   return (
-    <ModalShell className="exercise-list panel" onClose={onClose}>
-      <div className="section-heading">
-        <div>
+    <ModalShell className="exercise-list panel" size="lg" onClose={onClose}>
+      <div className="modal-header exercise-browser-header">
+        <div className="modal-heading">
           <span className="eyebrow">Exercise Browser</span>
           <h2>Choose your next challenge</h2>
         </div>
         {onClose ? (
-          <button type="button" className="btn-ghost" onClick={onClose}>
+          <button type="button" className="btn-ghost modal-close-button" onClick={onClose}>
             Close
           </button>
         ) : null}
       </div>
 
-      <div className="filter-grid exercise-filters">
-        <label className="field">
-          <span>Search</span>
-          <input
-            id="exercise-search"
-            type="search"
-            value={filters.search}
-            onChange={(event) => onFilterChange('search', event.target.value)}
-            placeholder="Search title"
-          />
-        </label>
+      <div className="modal-section exercise-browser-filters">
+        <div className="filter-grid exercise-filters">
+          <label className="field">
+            <span>Search</span>
+            <input
+              id="exercise-search"
+              type="search"
+              value={filters.search}
+              onChange={(event) => onFilterChange('search', event.target.value)}
+              placeholder="Search title"
+            />
+          </label>
 
-        <label className="field">
-          <span>Difficulty</span>
-          <select
-            id="exercise-difficulty-filter"
-            value={filters.difficulty}
-            onChange={(event) => onFilterChange('difficulty', event.target.value)}
-          >
-            <option value="all">All</option>
-            <option value="easy">Easy</option>
-            <option value="medium">Medium</option>
-            <option value="hard">Hard</option>
-          </select>
-        </label>
+          <label className="field">
+            <span>Difficulty</span>
+            <select
+              id="exercise-difficulty-filter"
+              value={filters.difficulty}
+              onChange={(event) => onFilterChange('difficulty', event.target.value)}
+            >
+              <option value="all">All</option>
+              <option value="easy">Easy</option>
+              <option value="medium">Medium</option>
+              <option value="hard">Hard</option>
+            </select>
+          </label>
 
-        <label className="field">
-          <span>Topic</span>
-          <select
-            id="exercise-topic-filter"
-            value={filters.topic}
-            onChange={(event) => onFilterChange('topic', event.target.value)}
-          >
-            <option value="all">All</option>
-            {filters.availableTopics.map((topic) => (
-              <option key={topic} value={topic}>
-                {topic}
-              </option>
-            ))}
-          </select>
-        </label>
+          <label className="field">
+            <span>Topic</span>
+            <select
+              id="exercise-topic-filter"
+              value={filters.topic}
+              onChange={(event) => onFilterChange('topic', event.target.value)}
+            >
+              <option value="all">All</option>
+              {filters.availableTopics.map((topic) => (
+                <option key={topic} value={topic}>
+                  {topic}
+                </option>
+              ))}
+            </select>
+          </label>
 
-        <label className="field">
-          <span>Category</span>
-          <select
-            id="exercise-category-filter"
-            value={filters.category}
-            onChange={(event) => onFilterChange('category', event.target.value)}
-          >
-            <option value="all">All</option>
-            {filters.availableCategories.map((category) => (
-              <option key={category} value={category}>
-                {category}
-              </option>
-            ))}
-          </select>
-        </label>
+          <label className="field">
+            <span>Category</span>
+            <select
+              id="exercise-category-filter"
+              value={filters.category}
+              onChange={(event) => onFilterChange('category', event.target.value)}
+            >
+              <option value="all">All</option>
+              {filters.availableCategories.map((category) => (
+                <option key={category} value={category}>
+                  {category}
+                </option>
+              ))}
+            </select>
+          </label>
 
-        <label className="field">
-          <span>Status</span>
-          <select
-            id="exercise-status-filter"
-            value={filters.status}
-            onChange={(event) => onFilterChange('status', event.target.value)}
-          >
-            <option value="all">All</option>
-            <option value="solved">Solved</option>
-            <option value="attempted">Attempted</option>
-            <option value="unsolved">Unsolved</option>
-          </select>
-        </label>
+          <label className="field">
+            <span>Status</span>
+            <select
+              id="exercise-status-filter"
+              value={filters.status}
+              onChange={(event) => onFilterChange('status', event.target.value)}
+            >
+              <option value="all">All</option>
+              <option value="solved">Solved</option>
+              <option value="attempted">Attempted</option>
+              <option value="unsolved">Unsolved</option>
+            </select>
+          </label>
 
-        <label className="checkbox-field">
-          <input
-            id="exercise-bookmarked-filter"
-            type="checkbox"
-            checked={filters.bookmarkedOnly}
-            onChange={(event) => onFilterChange('bookmarkedOnly', event.target.checked)}
-          />
-          <span>Bookmarked only</span>
-        </label>
+          <label className="checkbox-field">
+            <input
+              id="exercise-bookmarked-filter"
+              type="checkbox"
+              checked={filters.bookmarkedOnly}
+              onChange={(event) => onFilterChange('bookmarkedOnly', event.target.checked)}
+            />
+            <span>Bookmarked only</span>
+          </label>
+        </div>
       </div>
 
-      <div className="stack-md">
+      <div className="modal-body exercise-browser-body stack-md">
         {exercises.map((exercise) => {
           const status = statusMap[exercise.id] || 'unsolved'
           const isBookmarked = bookmarks.includes(exercise.id)
@@ -157,6 +160,8 @@ export default function ExerciseList({
                   type="button"
                   className={`bookmark-button ${isBookmarked ? 'active' : ''}`}
                   onClick={() => onToggleBookmark(exercise.id)}
+                  aria-label={isBookmarked ? 'Remove bookmark' : 'Bookmark exercise'}
+                  {...tooltipProps(isBookmarked ? 'Remove bookmark' : 'Bookmark exercise')}
                 >
                   {isBookmarked ? '♥' : '♡'}
                 </button>

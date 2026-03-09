@@ -7,7 +7,7 @@ import { importExercises, normalizeExerciseImportPayload } from './exercises'
 import { formatFirestoreDate } from './utils'
 import ModalShell from './ModalShell'
 
-export default function AdminDashboard({ onClose, theme }) {
+export default function AdminDashboard({ onClose, theme, onRefresh }) {
   const [profiles, setProfiles] = useState([])
   const [submissions, setSubmissions] = useState([])
   const [search, setSearch] = useState('')
@@ -168,6 +168,7 @@ export default function AdminDashboard({ onClose, theme }) {
       const exercises = normalizeExerciseImportPayload(parsed)
       await importExercises(exercises)
       setMessage(`Imported ${exercises.length} question${exercises.length === 1 ? '' : 's'}.`)
+      onRefresh?.()
     } catch (importError) {
       setError(importError.message || 'Failed to import questions.')
     } finally {
@@ -177,18 +178,23 @@ export default function AdminDashboard({ onClose, theme }) {
   }
 
   return (
-    <ModalShell className="admin-dashboard panel" onClose={onClose}>
-      <div className="section-heading">
-        <div>
+    <ModalShell className="admin-dashboard panel" size="lg" onClose={onClose}>
+      <div className="modal-header">
+        <div className="modal-heading">
           <span className="eyebrow">Admin</span>
           <h2>Admin Dashboard</h2>
         </div>
-        <button id="admin-dashboard-close" type="button" className="btn-ghost" onClick={onClose}>
+        <button
+          id="admin-dashboard-close"
+          type="button"
+          className="btn-ghost modal-close-button"
+          onClick={onClose}
+        >
           Close
         </button>
       </div>
 
-      <div className="profile-stats-grid">
+      <div className="modal-section profile-stats-grid">
         <article className="stat-card">
           <span className="eyebrow">Users</span>
           <strong>{summary.totalUsers}</strong>
@@ -207,9 +213,9 @@ export default function AdminDashboard({ onClose, theme }) {
         </article>
       </div>
 
-      <section className="panel subtle admin-import-card">
-        <div className="section-heading">
-          <div>
+      <section className="panel subtle admin-import-card modal-section">
+        <div className="modal-subheader">
+          <div className="modal-heading">
             <h3>Question Files</h3>
             <p className="message">
               Upload a JSON file containing one exercise object or an array of exercises.
@@ -245,7 +251,7 @@ export default function AdminDashboard({ onClose, theme }) {
         />
       </label>
 
-      <div className="table-shell">
+      <div className="modal-body table-shell">
         <table>
           <thead>
             <tr>
@@ -274,9 +280,9 @@ export default function AdminDashboard({ onClose, theme }) {
       </div>
 
       {selectedUserId && (
-        <section className="panel subtle">
-          <div className="section-heading">
-            <div>
+        <section className="panel subtle modal-section">
+          <div className="modal-subheader">
+            <div className="modal-heading">
               <h3>Selected user</h3>
               <p className="message">
                 {selectedProfile?.displayName || 'Anonymous'} ·{' '}

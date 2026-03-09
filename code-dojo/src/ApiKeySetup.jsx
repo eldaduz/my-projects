@@ -43,13 +43,18 @@ export default function ApiKeySetup({ embedded = false, onClose }) {
 
   return (
     <section className={`api-key-setup panel ${embedded ? 'embedded' : ''}`}>
-      <div className="section-heading">
-        <div>
+      <div className="modal-header">
+        <div className="modal-heading">
           <span className="eyebrow">Secure Setup</span>
           <h2>Connect your Gemini API key</h2>
         </div>
         {embedded && onClose ? (
-          <button id="api-key-close" type="button" className="btn-ghost" onClick={onClose}>
+          <button
+            id="api-key-close"
+            type="button"
+            className="btn-ghost modal-close-button"
+            onClick={onClose}
+          >
             Close
           </button>
         ) : null}

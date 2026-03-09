@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { LogOut } from 'lucide-react'
 import ReactMarkdown from 'react-markdown'
 import { getIdToken } from 'firebase/auth'
 import { addDoc, collection, getDocs, serverTimestamp } from 'firebase/firestore'
@@ -78,7 +79,7 @@ export default function App() {
     refreshProfile,
     updateUserProfile,
   } = useAuth()
-  const { theme, setTheme } = useTheme()
+  const { theme, setTheme, toggleTheme } = useTheme()
 
   const [exercises, setExercises] = useState([])
   const [submissions, setSubmissions] = useState([])
@@ -173,6 +174,7 @@ export default function App() {
   const xpNeededForLevel = Math.max(1, nextLevelXp - currentLevelXp)
   const exampleCase = currentExercise?.testCases?.[0] || null
   const currentStatus = currentExercise ? statusMap[currentExercise.id] || 'unsolved' : 'unsolved'
+  const tooltipProps = (label) => ({ title: label, 'data-tooltip': label })
 
   const refreshExercises = async () => {
     setLoadingExercises(true)
@@ -380,11 +382,22 @@ export default function App() {
 
           <div className="topbar-controls">
             <button
+              id="theme-toggle"
+              type="button"
+              className="icon-button"
+              onClick={() => handleThemeChange(theme === 'dark' ? 'light' : 'dark')}
+              aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+              {...tooltipProps(`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`)}
+            >
+              {theme === 'dark' ? '☀️' : '🌙'}
+            </button>
+            <button
               id="open-settings"
               type="button"
               className="icon-button"
               onClick={() => setShowSettingsPanel(true)}
               aria-label="Open settings"
+              {...tooltipProps('Your settings')}
             >
               ⚙
             </button>
@@ -394,6 +407,7 @@ export default function App() {
               className="icon-button"
               onClick={() => setShowProfile(true)}
               aria-label="Open profile"
+              {...tooltipProps('Your profile')}
             >
               👤
             </button>
@@ -403,6 +417,7 @@ export default function App() {
               className="icon-button"
               onClick={() => setShowLeaderboard(true)}
               aria-label="Open leaderboard"
+              {...tooltipProps('Leaderboard')}
             >
               🏆
             </button>
@@ -422,8 +437,9 @@ export default function App() {
               className="icon-button"
               onClick={logout}
               aria-label="Log out"
+              {...tooltipProps('Log out')}
             >
-              ↗
+              <LogOut size={18} />
             </button>
           </div>
         </div>
@@ -431,7 +447,12 @@ export default function App() {
 
       <main className="workspace-shell">
         <aside className="sidebar-rail panel" aria-label="Workspace navigation">
-          <button type="button" className="rail-button active" aria-label="Home">
+          <button
+            type="button"
+            className="rail-button active"
+            aria-label="Home"
+            {...tooltipProps('Home')}
+          >
             🏠
           </button>
           <button
@@ -439,6 +460,7 @@ export default function App() {
             className="rail-button"
             aria-label="Exercise browser"
             onClick={() => setShowExerciseBrowser(true)}
+            {...tooltipProps('Exercise browser')}
           >
             📋
           </button>
@@ -447,6 +469,7 @@ export default function App() {
             className="rail-button"
             aria-label="Leaderboard"
             onClick={() => setShowLeaderboard(true)}
+            {...tooltipProps('Leaderboard')}
           >
             🏆
           </button>
@@ -455,6 +478,7 @@ export default function App() {
             className="rail-button"
             aria-label="Profile"
             onClick={() => setShowProfile(true)}
+            {...tooltipProps('Your profile')}
           >
             👤
           </button>
@@ -463,6 +487,7 @@ export default function App() {
             className="rail-button"
             aria-label="API settings"
             onClick={() => setShowSettingsPanel(true)}
+            {...tooltipProps('Your settings')}
           >
             ⚙
           </button>
@@ -472,6 +497,7 @@ export default function App() {
               className="rail-button"
               aria-label="Exercise manager"
               onClick={() => setShowExerciseManager(true)}
+              {...tooltipProps('Exercise manager')}
             >
               👑
             </button>
@@ -591,6 +617,16 @@ export default function App() {
                     type="button"
                     className={`bookmark-button detail-bookmark ${bookmarks.includes(currentExercise.id) ? 'active' : ''}`}
                     onClick={() => toggleBookmark(currentExercise.id)}
+                    aria-label={
+                      bookmarks.includes(currentExercise.id)
+                        ? 'Remove bookmark'
+                        : 'Bookmark exercise'
+                    }
+                    {...tooltipProps(
+                      bookmarks.includes(currentExercise.id)
+                        ? 'Remove bookmark'
+                        : 'Bookmark exercise',
+                    )}
                   >
                     {bookmarks.includes(currentExercise.id) ? '♥' : '♡'}
                   </button>
@@ -668,6 +704,7 @@ export default function App() {
                   className="icon-button copy-button"
                   onClick={() => navigator.clipboard?.writeText(code)}
                   aria-label="Copy code"
+                  {...tooltipProps('Copy code')}
                 >
                   ⧉
                 </button>
@@ -766,7 +803,11 @@ export default function App() {
         />
       )}
       {showAdminDashboard && (
-        <AdminDashboard onClose={() => setShowAdminDashboard(false)} theme={theme} />
+        <AdminDashboard
+          onClose={() => setShowAdminDashboard(false)}
+          theme={theme}
+          onRefresh={refreshExercises}
+        />
       )}
       {showLeaderboard && (
         <Leaderboard currentUserId={user.uid} onClose={() => setShowLeaderboard(false)} />
