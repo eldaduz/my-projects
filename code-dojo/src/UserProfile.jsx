@@ -126,7 +126,9 @@ export default function UserProfile({ profile, submissions, bookmarkedExercises,
         </div>
 
         {paginatedSubmissions.length === 0 ? (
-          <p className="message profile-history-empty">No submissions yet. Start practicing to see your history here.</p>
+          <p className="message profile-history-empty">
+            No submissions yet. Start practicing to see your history here.
+          </p>
         ) : (
           <div className="stack-md profile-history-list">
             {paginatedSubmissions.map((submission, index) => (

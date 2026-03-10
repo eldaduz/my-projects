@@ -32,7 +32,8 @@ function normalizeGuidedSolution(rawText) {
 
   if (!parsed || typeof parsed !== 'object') {
     return {
-      summary: 'Gemini returned a solution in an unexpected format. Review the generated explanation below.',
+      summary:
+        'Gemini returned a solution in an unexpected format. Review the generated explanation below.',
       steps: ['Read the explanation carefully and compare it with your current attempt.'],
       whyItWorks: rawText || 'No guided solution explanation was returned.',
       complexity: 'Time complexity and space complexity were not provided.',
@@ -42,7 +43,9 @@ function normalizeGuidedSolution(rawText) {
   }
 
   return {
-    summary: String(parsed.summary || 'Use this guided solution to understand the intended approach.').trim(),
+    summary: String(
+      parsed.summary || 'Use this guided solution to understand the intended approach.',
+    ).trim(),
     steps: normalizeList(parsed.steps),
     whyItWorks: String(parsed.whyItWorks || 'Why this works was not provided.').trim(),
     complexity: String(parsed.complexity || 'Complexity analysis was not provided.').trim(),
@@ -166,10 +169,9 @@ The explanation must teach the user how the problem is solved, not just provide 
       requestedAt: FieldValue.serverTimestamp(),
     })
 
-    await db.doc(`codeDojo_exercises/${exerciseId}`).set(
-      { attemptCount: FieldValue.increment(1) },
-      { merge: true },
-    )
+    await db
+      .doc(`codeDojo_exercises/${exerciseId}`)
+      .set({ attemptCount: FieldValue.increment(1) }, { merge: true })
 
     return response.status(200).json(guidedSolution)
   } catch (error) {

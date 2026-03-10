@@ -14,7 +14,11 @@ export default function GuidedSolutionModal({
       <div className="modal-header">
         <div className="modal-heading">
           <span className="eyebrow">Guided solution</span>
-          <h2>{guidedSolution ? currentExercise?.title || 'Guided Solution' : 'Reveal the worked solution?'}</h2>
+          <h2>
+            {guidedSolution
+              ? currentExercise?.title || 'Guided Solution'
+              : 'Reveal the worked solution?'}
+          </h2>
         </div>
         <button type="button" className="btn-ghost modal-close-button" onClick={onClose}>
           Close
@@ -27,7 +31,8 @@ export default function GuidedSolutionModal({
             This reveals the full AI-generated solution with an explanation of how it works.
           </p>
           <p className="message warning">
-            Using a guided solution sets XP for this exercise attempt to 0, even if you submit afterwards.
+            Using a guided solution sets XP for this exercise attempt to 0, even if you submit
+            afterwards.
           </p>
           <div className="inline-actions">
             <button

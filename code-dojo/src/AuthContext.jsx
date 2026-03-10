@@ -1,7 +1,9 @@
 import { createContext, useContext, useEffect, useMemo, useState } from 'react'
 import {
   createUserWithEmailAndPassword,
+  getIdToken,
   onAuthStateChanged,
+  reload,
   signInWithEmailAndPassword,
   signOut,
   updateProfile as updateFirebaseProfile,
@@ -25,17 +27,22 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      setUser(firebaseUser)
-
       if (!firebaseUser) {
+        setUser(null)
         setProfile(null)
         setLoading(false)
         setProfileLoading(false)
         return
       }
 
+      // Refresh auth metadata and token so Firestore rules see the current email claim.
+      await reload(firebaseUser)
+      await getIdToken(firebaseUser, true)
+      const nextUser = auth.currentUser ?? firebaseUser
+
+      setUser(nextUser)
       setProfileLoading(true)
-      setProfile(await loadUserProfile(firebaseUser.uid))
+      setProfile(await loadUserProfile(nextUser.uid))
       setLoading(false)
       setProfileLoading(false)
     })
@@ -76,7 +83,9 @@ export function AuthProvider({ children }) {
 
   const updateUserProfile = async (patch) => {
     if (!user) return
-    setProfile((currentProfile) => (currentProfile ? { ...currentProfile, ...patch } : currentProfile))
+    setProfile((currentProfile) =>
+      currentProfile ? { ...currentProfile, ...patch } : currentProfile,
+    )
     await setDoc(doc(db, 'codeDojo_users', user.uid), patch, { merge: true })
     if (patch.displayName && patch.displayName !== user.displayName) {
       await updateFirebaseProfile(user, { displayName: patch.displayName })
