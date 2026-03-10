@@ -43,12 +43,12 @@ export function AuthProvider({ children }) {
     return unsubscribe
   }, [])
 
-  const refreshProfile = async (uid = user?.uid) => {
+  const refreshProfile = async (uid = user?.uid, { silent = false } = {}) => {
     if (!uid) return null
-    setProfileLoading(true)
+    if (!silent) setProfileLoading(true)
     const nextProfile = await loadUserProfile(uid)
     setProfile(nextProfile)
-    setProfileLoading(false)
+    if (!silent) setProfileLoading(false)
     return nextProfile
   }
 
@@ -76,11 +76,12 @@ export function AuthProvider({ children }) {
 
   const updateUserProfile = async (patch) => {
     if (!user) return
+    setProfile((currentProfile) => (currentProfile ? { ...currentProfile, ...patch } : currentProfile))
     await setDoc(doc(db, 'codeDojo_users', user.uid), patch, { merge: true })
     if (patch.displayName && patch.displayName !== user.displayName) {
       await updateFirebaseProfile(user, { displayName: patch.displayName })
     }
-    await refreshProfile(user.uid)
+    await refreshProfile(user.uid, { silent: true })
   }
 
   const value = useMemo(

@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react'
+import { createContext, useContext, useEffect, useMemo, useState } from 'react'
 
 const ThemeContext = createContext(null)
 
@@ -13,48 +13,17 @@ export function getInitialTheme() {
 
 export function ThemeProvider({ children }) {
   const [theme, setThemeState] = useState(getInitialTheme)
-  const switchTimerRef = useRef(null)
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme)
     localStorage.setItem('codeDojo_theme', theme)
   }, [theme])
 
-  useEffect(
-    () => () => {
-      if (switchTimerRef.current) {
-        window.clearTimeout(switchTimerRef.current)
-      }
-    },
-    [],
-  )
-
   const setTheme = (nextThemeOrUpdater) => {
-    const applyTheme = () => {
-      setThemeState((currentTheme) =>
-        typeof nextThemeOrUpdater === 'function'
-          ? nextThemeOrUpdater(currentTheme)
-          : nextThemeOrUpdater,
-      )
-    }
-
-    const root = document.documentElement
-    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-
-    root.setAttribute('data-theme-switching', 'true')
-    if (switchTimerRef.current) window.clearTimeout(switchTimerRef.current)
-
-    if (!prefersReducedMotion && typeof document.startViewTransition === 'function') {
-      document.startViewTransition(applyTheme)
-    } else {
-      applyTheme()
-    }
-
-    switchTimerRef.current = window.setTimeout(
-      () => {
-        root.removeAttribute('data-theme-switching')
-      },
-      prefersReducedMotion ? 0 : 240,
+    setThemeState((currentTheme) =>
+      typeof nextThemeOrUpdater === 'function'
+        ? nextThemeOrUpdater(currentTheme)
+        : nextThemeOrUpdater,
     )
   }
 

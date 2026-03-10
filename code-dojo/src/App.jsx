@@ -1,3 +1,4 @@
+import { Analytics } from '@vercel/analytics/react'
 import { useEffect, useMemo, useState } from 'react'
 import { LogOut } from 'lucide-react'
 import ReactMarkdown from 'react-markdown'
@@ -18,6 +19,8 @@ import AdminDashboard from './AdminDashboard'
 import Leaderboard from './Leaderboard'
 import UserProfile from './UserProfile'
 import SettingsPanel from './SettingsPanel'
+import RankHoverCard from './RankHoverCard'
+import GuidedSolutionModal from './GuidedSolutionModal'
 
 function SplashScreen({ message }) {
   return (
@@ -68,6 +71,28 @@ function getSubmissionErrorMessage(error) {
   return message || 'Submission failed.'
 }
 
+function getGuidedSolutionErrorMessage(error) {
+  const message = error?.message || ''
+
+  if (message.includes('Must be logged in')) {
+    return 'Your session expired. Sign in again and try again.'
+  }
+
+  if (message.includes('No API key saved')) {
+    return 'No API key is saved for this account. Open Settings and save one first.'
+  }
+
+  if (message.includes('invalid')) {
+    return 'Your Gemini API key was rejected. Update it in Settings and try again.'
+  }
+
+  if (message.includes('Daily guided solution limit reached')) {
+    return 'Daily guided solution limit reached. Try again tomorrow.'
+  }
+
+  return message || 'Guided solution request failed.'
+}
+
 export default function App() {
   const {
     user,
@@ -100,6 +125,10 @@ export default function App() {
   const [feedback, setFeedback] = useState('')
   const [earnedXp, setEarnedXp] = useState(null)
   const [submitting, setSubmitting] = useState(false)
+  const [guidedSolution, setGuidedSolution] = useState(null)
+  const [guidedSolutionUsed, setGuidedSolutionUsed] = useState(false)
+  const [showGuidedSolutionModal, setShowGuidedSolutionModal] = useState(false)
+  const [loadingGuidedSolution, setLoadingGuidedSolution] = useState(false)
   const [timerRunning, setTimerRunning] = useState(false)
   const [timerResetKey, setTimerResetKey] = useState(0)
   const [attemptStartedAt, setAttemptStartedAt] = useState(null)
@@ -224,6 +253,9 @@ export default function App() {
     setShowHint(false)
     setHintUsed(false)
     setShowSolution(false)
+    setGuidedSolution(null)
+    setGuidedSolutionUsed(false)
+    setShowGuidedSolutionModal(false)
     setScore(null)
     setFeedback('')
     setEarnedXp(null)
@@ -267,6 +299,7 @@ export default function App() {
           testCases: currentExercise.testCases || [],
           code,
           hintUsed,
+          guidedSolutionUsed,
           baseXp: currentExercise.baseXp,
           timeSpent: attemptStartedAt ? Math.round((Date.now() - attemptStartedAt) / 1000) : null,
         }),
@@ -305,6 +338,7 @@ export default function App() {
       feedback: 'You gave up on this exercise. Review the solution approach and try again.',
       xpEarned: 0,
       hintUsed,
+      guidedSolutionUsed,
       timeSpent: attemptStartedAt ? Math.round((Date.now() - attemptStartedAt) / 1000) : null,
       submittedAt: serverTimestamp(),
     })
@@ -315,6 +349,52 @@ export default function App() {
     setShowSolution(true)
     setTimerRunning(false)
     await refreshSubmissions()
+  }
+
+  const handleConfirmGuidedSolution = async () => {
+    if (!currentExercise || !user) return
+
+    setLoadingGuidedSolution(true)
+    try {
+      const token = await getIdToken(auth.currentUser)
+      const response = await fetch('/api/guided-solution', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          exerciseId: currentExercise.id,
+          exerciseTitle: currentExercise.title,
+          exerciseDescription: currentExercise.description,
+          starterCode: currentExercise.starterCode || '',
+          testCases: currentExercise.testCases || [],
+          hint: currentExercise.hint || '',
+          solutionApproach: currentExercise.solutionApproach || '',
+          code,
+        }),
+      })
+
+      const result = await response.json()
+      if (!response.ok) {
+        throw new Error(result.error || 'Guided solution failed')
+      }
+
+      setGuidedSolution(result)
+      setGuidedSolutionUsed(true)
+      setHintUsed(true)
+      setFeedback(
+        'Guided solution revealed. You can still submit for feedback, but XP for this exercise attempt is now locked to 0.',
+      )
+      setEarnedXp(0)
+      await refreshExercises()
+    } catch (guidedSolutionError) {
+      setGuidedSolution(null)
+      setFeedback(getGuidedSolutionErrorMessage(guidedSolutionError))
+      setEarnedXp(0)
+    } finally {
+      setLoadingGuidedSolution(false)
+    }
   }
 
   const handleThemeChange = async (nextTheme) => {
@@ -348,9 +428,13 @@ export default function App() {
         </div>
 
         <div className="topbar-progress">
-          <div className="level-badge" style={{ '--belt-color': levelMeta.current.color }}>
-            <span>Lv {levelMeta.levelIndex + 1}</span>
-          </div>
+          <RankHoverCard
+            totalXp={profile?.totalXp || 0}
+            triggerClassName="level-badge"
+            triggerStyle={{ '--belt-color': levelMeta.current.color }}
+            triggerLabel={`Current rank: ${levelMeta.current.name}`}
+            triggerContent={<span>Lv {levelMeta.levelIndex + 1}</span>}
+          />
           <div className="progress-cluster">
             <div className="progress-copy">
               <span>
@@ -613,6 +697,14 @@ export default function App() {
                     💡 {showHint ? 'Hide Hint' : 'Use Hint (-35% XP)'}
                   </button>
                   <button
+                    id="show-guided-solution"
+                    type="button"
+                    className="btn-ghost"
+                    onClick={() => setShowGuidedSolutionModal(true)}
+                  >
+                    📘 Show Guided Solution
+                  </button>
+                  <button
                     id={`bookmark-selected-${currentExercise.id}`}
                     type="button"
                     className={`bookmark-button detail-bookmark ${bookmarks.includes(currentExercise.id) ? 'active' : ''}`}
@@ -641,6 +733,11 @@ export default function App() {
                 </div>
 
                 {showHint && <div className="hint-box">💡 {currentExercise.hint}</div>}
+                {guidedSolutionUsed && (
+                  <div className="hint-box warning">
+                    Guided solution used. XP for this exercise attempt is locked to 0.
+                  </div>
+                )}
                 {showSolution && (
                   <div className="solution-box">
                     <h3>Solution Approach</h3>
@@ -733,6 +830,11 @@ export default function App() {
                         <p className="xp-earned">
                           +{earnedXp || 0} XP {profile?.streak >= 7 ? '• streak bonus active' : ''}
                         </p>
+                        {guidedSolutionUsed && (
+                          <p className="message warning">
+                            Guided solution used: feedback only, no XP awarded.
+                          </p>
+                        )}
                       </div>
                     </div>
                     <div className="feedback-body markdown-body">
@@ -820,6 +922,19 @@ export default function App() {
           onClose={() => setShowProfile(false)}
         />
       )}
+      {showGuidedSolutionModal && (
+        <GuidedSolutionModal
+          loading={loadingGuidedSolution}
+          currentExercise={currentExercise}
+          guidedSolution={guidedSolution}
+          onConfirm={handleConfirmGuidedSolution}
+          onApply={() => {
+            if (guidedSolution?.solutionCode) setCode(guidedSolution.solutionCode)
+          }}
+          onClose={() => setShowGuidedSolutionModal(false)}
+        />
+      )}
+      <Analytics />
     </div>
   )
 }

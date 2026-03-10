@@ -65,6 +65,7 @@ export default async function handler(request, response) {
       testCases,
       code,
       hintUsed,
+      guidedSolutionUsed,
       baseXp,
       timeSpent,
     } = request.body
@@ -131,7 +132,9 @@ export default async function handler(request, response) {
 
     const streakMultiplier = nextStreak >= 7 ? 1.1 : 1
     const hintMultiplier = hintUsed ? 0.65 : 1
-    const xpEarned = Math.round((baseXp || 120) * (score / 100) * hintMultiplier * streakMultiplier)
+    const xpEarned = guidedSolutionUsed
+      ? 0
+      : Math.round((baseXp || 120) * (score / 100) * hintMultiplier * streakMultiplier)
     const totalXp = (profile.totalXp || 0) + xpEarned
     const level = getLevelFromXp(totalXp)
 
@@ -143,6 +146,7 @@ export default async function handler(request, response) {
       feedback,
       xpEarned,
       hintUsed: Boolean(hintUsed),
+      guidedSolutionUsed: Boolean(guidedSolutionUsed),
       timeSpent: timeSpent || null,
       submittedAt: FieldValue.serverTimestamp(),
     })

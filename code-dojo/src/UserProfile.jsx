@@ -1,6 +1,8 @@
 import { useMemo, useState } from 'react'
 import { formatFirestoreDate } from './utils'
 import ModalShell from './ModalShell'
+import { getLevelMeta } from './levels'
+import RankHoverCard from './RankHoverCard'
 
 export default function UserProfile({ profile, submissions, bookmarkedExercises, onClose }) {
   const [page, setPage] = useState(0)
@@ -27,6 +29,8 @@ export default function UserProfile({ profile, submissions, bookmarkedExercises,
     }
   }, [submissions])
 
+  const levelMeta = getLevelMeta(profile?.totalXp || 0)
+
   return (
     <ModalShell className="user-profile panel" size="lg" onClose={onClose}>
       <div className="modal-header">
@@ -49,9 +53,15 @@ export default function UserProfile({ profile, submissions, bookmarkedExercises,
           <span className="eyebrow">XP</span>
           <strong>{profile?.totalXp || 0}</strong>
         </article>
-        <article className="stat-card">
+        <article className="stat-card stat-card--rank">
           <span className="eyebrow">Level</span>
-          <strong>{profile?.levelName || 'White Belt'}</strong>
+          <RankHoverCard
+            totalXp={profile?.totalXp || 0}
+            triggerClassName="stat-rank-trigger"
+            triggerStyle={{ '--belt-color': levelMeta.current.color }}
+            triggerLabel={`Current rank: ${profile?.levelName || 'White Belt'}`}
+            triggerContent={<strong>{profile?.levelName || 'White Belt'}</strong>}
+          />
         </article>
         <article className="stat-card">
           <span className="eyebrow">Streak</span>
@@ -66,12 +76,12 @@ export default function UserProfile({ profile, submissions, bookmarkedExercises,
       </div>
 
       <div className="modal-section profile-layout">
-        <section className="panel subtle">
+        <section className="panel subtle profile-info-card">
           <h3>Bookmarks</h3>
           {bookmarkedExercises.length === 0 ? (
-            <p className="message">No bookmarked exercises yet.</p>
+            <p className="message profile-info-copy">No bookmarked exercises yet.</p>
           ) : (
-            <div className="tag-row">
+            <div className="tag-row profile-info-copy">
               {bookmarkedExercises.map((exercise) => (
                 <span key={exercise.id} className="tag">
                   {exercise.title}
@@ -81,16 +91,16 @@ export default function UserProfile({ profile, submissions, bookmarkedExercises,
           )}
         </section>
 
-        <section className="panel subtle">
+        <section className="panel subtle profile-info-card">
           <h3>Profile Summary</h3>
-          <p className="message">
+          <p className="message profile-info-copy">
             Settings and API key management now live in the dedicated settings panel from the top
             bar.
           </p>
         </section>
       </div>
 
-      <section className="panel subtle modal-section">
+      <section className="panel subtle modal-section profile-history-section">
         <div className="modal-subheader">
           <h3>Submission History</h3>
           <div className="inline-actions">
@@ -115,22 +125,26 @@ export default function UserProfile({ profile, submissions, bookmarkedExercises,
           </div>
         </div>
 
-        <div className="stack-md">
-          {paginatedSubmissions.map((submission, index) => (
-            <article key={`${submission.exerciseId}-${index}`} className="history-card">
-              <div className="exercise-card__top">
-                <div>
-                  <strong>{submission.exerciseTitle}</strong>
-                  <div className="meta-row">
-                    <span>{submission.score}/100</span>
-                    <span>+{submission.xpEarned || 0} XP</span>
-                    <span>{formatFirestoreDate(submission.submittedAt)}</span>
+        {paginatedSubmissions.length === 0 ? (
+          <p className="message profile-history-empty">No submissions yet. Start practicing to see your history here.</p>
+        ) : (
+          <div className="stack-md profile-history-list">
+            {paginatedSubmissions.map((submission, index) => (
+              <article key={`${submission.exerciseId}-${index}`} className="history-card">
+                <div className="exercise-card__top">
+                  <div>
+                    <strong>{submission.exerciseTitle}</strong>
+                    <div className="meta-row">
+                      <span>{submission.score}/100</span>
+                      <span>+{submission.xpEarned || 0} XP</span>
+                      <span>{formatFirestoreDate(submission.submittedAt)}</span>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </article>
-          ))}
-        </div>
+              </article>
+            ))}
+          </div>
+        )}
       </section>
     </ModalShell>
   )

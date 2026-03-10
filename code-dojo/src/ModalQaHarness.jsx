@@ -3,6 +3,7 @@ import ExerciseList from './ExerciseList'
 import ModalShell from './ModalShell'
 import UserProfile from './UserProfile'
 import { useTheme } from './ThemeContext'
+import RankHoverCard from './RankHoverCard'
 
 const QA_EXERCISES = [
   {
@@ -57,7 +58,7 @@ const QA_EXERCISES = [
 
 const QA_PROFILE = {
   displayName: 'QA Sensei',
-  totalXp: 1840,
+  totalXp: 660,
   levelName: 'Blue Belt',
   streak: 6,
   bookmarks: ['sum-pairs', 'memo-fib'],
@@ -248,9 +249,13 @@ export default function ModalQaHarness() {
           </div>
         </div>
         <div className="topbar-progress">
-          <div className="level-badge" style={{ '--belt-color': '#679bd1' }}>
-            <span>QA</span>
-          </div>
+          <RankHoverCard
+            totalXp={QA_PROFILE.totalXp}
+            triggerClassName="level-badge"
+            triggerStyle={{ '--belt-color': '#679bd1' }}
+            triggerLabel="Current rank: Blue Belt"
+            triggerContent={<span>QA</span>}
+          />
           <div className="progress-cluster">
             <div className="progress-copy">
               <span>Theme and modal verification</span>

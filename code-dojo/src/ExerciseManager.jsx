@@ -287,7 +287,7 @@ export default function ExerciseManager({ exercises, onClose, onRefresh }) {
 
         {error && <p className="message error field--wide">{error}</p>}
 
-        <div className="inline-actions field--wide">
+        <div className="inline-actions field--wide manager-actions">
           <button id="exercise-form-submit" type="submit" className="btn-primary" disabled={busy}>
             {busy ? 'Saving...' : 'Add Exercise'}
           </button>
@@ -312,7 +312,7 @@ export default function ExerciseManager({ exercises, onClose, onRefresh }) {
         </div>
       </form>
 
-      <div className="modal-body stack-md">
+      <div className="modal-body stack-md manager-list">
         {sortedExercises.map((exercise) => (
           <article key={exercise.id} className="exercise-card admin-card">
             <div className="exercise-card__top">
