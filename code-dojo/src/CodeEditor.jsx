@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { forwardRef, useEffect, useImperativeHandle, useRef } from 'react'
 import { EditorState } from '@codemirror/state'
 import { EditorView } from '@codemirror/view'
 import { javascript } from '@codemirror/lang-javascript'
@@ -20,11 +20,24 @@ const lightTheme = EditorView.theme({
   },
 })
 
-export default function CodeEditor({ value, onChange, disabled, theme = 'dark' }) {
+const CodeEditor = forwardRef(function CodeEditor(
+  { value, onChange, disabled, theme = 'dark' },
+  ref,
+) {
   const editorRef = useRef(null)
   const viewRef = useRef(null)
   const onChangeRef = useRef(onChange)
   onChangeRef.current = onChange
+
+  useImperativeHandle(
+    ref,
+    () => ({
+      focus() {
+        viewRef.current?.focus()
+      },
+    }),
+    [],
+  )
 
   useEffect(() => {
     if (!editorRef.current) return undefined
@@ -64,4 +77,6 @@ export default function CodeEditor({ value, onChange, disabled, theme = 'dark' }
   }, [value])
 
   return <div className="code-editor-wrapper" ref={editorRef} />
-}
+})
+
+export default CodeEditor

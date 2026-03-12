@@ -647,6 +647,13 @@ button {
   min-height: calc(100vh - 124px);
 }
 
+.workspace-main-panels {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(320px, 0.85fr);
+  gap: 16px;
+  min-height: calc(100vh - 124px);
+}
+
 .exercise-detail,
 .editor-panel {
   border-radius: 20px;
@@ -863,6 +870,11 @@ button:disabled {
   overflow: hidden;
 }
 
+.review-panel {
+  padding: 0;
+  overflow: hidden;
+}
+
 .editor-header {
   display: flex;
   justify-content: space-between;
@@ -881,7 +893,7 @@ button:disabled {
 
 .editor-surface {
   display: grid;
-  grid-template-rows: auto minmax(380px, 1fr) 150px;
+  grid-template-rows: auto minmax(220px, 1fr);
   min-height: calc(100vh - 156px);
 }
 
@@ -929,7 +941,7 @@ button:disabled {
 
 .cm-editor,
 .cm-scroller {
-  min-height: 420px;
+  min-height: 240px;
   font-family: Menlo, Monaco, 'Courier New', monospace;
   font-size: 14px;
 }
@@ -939,6 +951,10 @@ button:disabled {
   background: color-mix(in srgb, var(--bg-input) 80%, var(--bg-card));
   padding: 14px 16px 16px;
   overflow-y: auto;
+}
+
+.review-surface {
+  height: 100%;
 }
 
 .console-label {
@@ -1665,6 +1681,7 @@ tbody tr:hover {
   }
 
   .split-layout,
+  .workspace-main-panels,
   .settings-grid,
   .profile-layout,
   .manager-grid {
@@ -1680,8 +1697,12 @@ tbody tr:hover {
   }
 
   .editor-surface {
-    grid-template-rows: auto minmax(360px, 1fr) 170px;
+    grid-template-rows: auto minmax(240px, 1fr);
     min-height: 0;
+  }
+
+  .review-panel {
+    min-height: 260px;
   }
 }
 

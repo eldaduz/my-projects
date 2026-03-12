@@ -1,5 +1,5 @@
 import { Analytics } from '@vercel/analytics/react'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { LogOut } from 'lucide-react'
 import ReactMarkdown from 'react-markdown'
 import { getIdToken } from 'firebase/auth'
@@ -139,6 +139,7 @@ export default function App() {
   const [showLeaderboard, setShowLeaderboard] = useState(false)
   const [showProfile, setShowProfile] = useState(false)
   const [showExerciseBrowser, setShowExerciseBrowser] = useState(false)
+  const editorRef = useRef(null)
 
   const availableTopics = useMemo(
     () => [...new Set(exercises.flatMap((exercise) => exercise.topics || []))].sort(),
@@ -402,6 +403,12 @@ export default function App() {
     setTheme(nextTheme)
     localStorage.setItem('codeDojo_theme', nextTheme)
     await updateUserProfile({ theme: nextTheme })
+  }
+
+  const focusEditor = () => {
+    requestAnimationFrame(() => {
+      editorRef.current?.focus?.()
+    })
   }
 
   if (loading || profileLoading) return <SplashScreen message="Loading your dojo..." />
@@ -750,71 +757,83 @@ export default function App() {
             )}
           </section>
 
-          <section className="editor-panel panel surface-card">
-            <div className="editor-header">
-              <div>
-                <span className="eyebrow">Code Editor</span>
-                <h2>
-                  {currentExercise ? `${currentExercise.title} Challenge` : 'Select an exercise'}
-                </h2>
-              </div>
-              <div className="controls">
-                <button type="button" className="btn-primary muted" disabled>
-                  ▶ Run Code
-                </button>
-                <button
-                  id="submit-solution"
-                  type="button"
-                  className="btn-secondary accent"
-                  onClick={handleSubmit}
-                  disabled={submitting || !currentExercise}
-                >
-                  {submitting ? 'Submitting...' : 'Submit'}
-                </button>
-                <button
-                  id="next-exercise"
-                  type="button"
-                  className="btn-ghost"
-                  onClick={() => {
-                    const currentIndex = visibleExercises.findIndex(
-                      (exercise) => exercise.id === currentExercise?.id,
-                    )
-                    const nextExercise = visibleExercises[currentIndex + 1] || visibleExercises[0]
-                    setSelectedExerciseId(nextExercise?.id || '')
-                  }}
-                  disabled={!currentExercise || visibleExercises.length === 0}
-                >
-                  Next
-                </button>
-              </div>
-            </div>
-
-            <div className="editor-surface">
-              <div className="editor-toolbar">
-                <div className="window-dots" aria-hidden="true">
-                  <span className="dot red" />
-                  <span className="dot yellow" />
-                  <span className="dot green" />
+          <div className="workspace-main-panels">
+            <section className="editor-panel panel surface-card">
+              <div className="editor-header">
+                <div>
+                  <span className="eyebrow">Code Editor</span>
+                  <h2>
+                    {currentExercise ? `${currentExercise.title} Challenge` : 'Select an exercise'}
+                  </h2>
                 </div>
-                <button
-                  type="button"
-                  className="icon-button copy-button"
-                  onClick={() => navigator.clipboard?.writeText(code)}
-                  aria-label="Copy code"
-                  {...tooltipProps('Copy code')}
-                >
-                  ⧉
-                </button>
+                <div className="controls">
+                  <button type="button" className="btn-primary muted" disabled>
+                    ▶ Run Code
+                  </button>
+                  <button
+                    id="submit-solution"
+                    type="button"
+                    className="btn-secondary accent"
+                    onClick={handleSubmit}
+                    disabled={submitting || !currentExercise}
+                  >
+                    {submitting ? 'Submitting...' : 'Submit'}
+                  </button>
+                  <button
+                    id="next-exercise"
+                    type="button"
+                    className="btn-ghost"
+                    onClick={() => {
+                      const currentIndex = visibleExercises.findIndex(
+                        (exercise) => exercise.id === currentExercise?.id,
+                      )
+                      const nextExercise = visibleExercises[currentIndex + 1] || visibleExercises[0]
+                      setSelectedExerciseId(nextExercise?.id || '')
+                    }}
+                    disabled={!currentExercise || visibleExercises.length === 0}
+                  >
+                    Next
+                  </button>
+                </div>
               </div>
 
-              <CodeEditor
-                value={code}
-                onChange={setCode}
-                disabled={!currentExercise}
-                theme={theme}
-              />
+              <div className="editor-surface">
+                <div className="editor-toolbar">
+                  <div className="window-dots" aria-hidden="true">
+                    <span className="dot red" />
+                    <span className="dot yellow" />
+                    <span className="dot green" />
+                  </div>
+                  <button
+                    type="button"
+                    className="icon-button copy-button"
+                    onClick={() => navigator.clipboard?.writeText(code)}
+                    aria-label="Copy code"
+                    {...tooltipProps('Copy code')}
+                  >
+                    ⧉
+                  </button>
+                </div>
 
-              <section className="console-panel">
+                <CodeEditor
+                  ref={editorRef}
+                  value={code}
+                  onChange={setCode}
+                  disabled={!currentExercise}
+                  theme={theme}
+                />
+              </div>
+            </section>
+
+            <section className="review-panel panel surface-card">
+              <div className="editor-header review-header">
+                <div>
+                  <span className="eyebrow">Code Review</span>
+                  <h2>{score !== null ? 'Feedback and score' : 'Review will appear here'}</h2>
+                </div>
+              </div>
+
+              <section className="console-panel review-surface">
                 {score !== null ? (
                   <section className="feedback-card">
                     <div className="feedback-header">
@@ -843,7 +862,7 @@ export default function App() {
                   </section>
                 ) : (
                   <>
-                    <div className="console-label">&gt;_ Console</div>
+                    <div className="console-label">&gt;_ Recent reviews</div>
                     <div className="console-history">
                       {sortedSubmissions.slice(0, 3).map((submission) => (
                         <article key={submission.id} className="history-card compact">
@@ -855,14 +874,16 @@ export default function App() {
                         </article>
                       ))}
                       {sortedSubmissions.length === 0 && (
-                        <p className="message">Run your first submission to see results here.</p>
+                        <p className="message">
+                          Submit your solution to see the code review, score, and XP feedback here.
+                        </p>
                       )}
                     </div>
                   </>
                 )}
               </section>
-            </div>
-          </section>
+            </section>
+          </div>
         </div>
       </main>
 
@@ -929,7 +950,11 @@ export default function App() {
           guidedSolution={guidedSolution}
           onConfirm={handleConfirmGuidedSolution}
           onApply={() => {
-            if (guidedSolution?.solutionCode) setCode(guidedSolution.solutionCode)
+            if (guidedSolution?.solutionCode) {
+              setCode(guidedSolution.solutionCode)
+              setShowGuidedSolutionModal(false)
+              focusEditor()
+            }
           }}
           onClose={() => setShowGuidedSolutionModal(false)}
         />
