@@ -10,13 +10,39 @@ const lightTheme = EditorView.theme({
     backgroundColor: 'var(--bg-input)',
     color: 'var(--text-primary)',
   },
+  '.cm-scroller': {
+    backgroundColor: 'var(--bg-input)',
+  },
   '.cm-content': {
     caretColor: 'var(--emerald-500)',
+    backgroundColor: 'var(--bg-input)',
   },
   '.cm-gutters': {
-    backgroundColor: 'var(--bg-secondary)',
+    backgroundColor: 'var(--bg-input)',
     color: 'var(--text-muted)',
     border: 'none',
+  },
+  '.cm-activeLine, .cm-activeLineGutter': {
+    backgroundColor: 'color-mix(in srgb, var(--bg-elevated) 65%, var(--bg-input))',
+  },
+})
+
+const sharedEditorTheme = EditorView.theme({
+  '&': {
+    backgroundColor: 'var(--bg-input)',
+  },
+  '.cm-scroller': {
+    backgroundColor: 'var(--bg-input)',
+  },
+  '.cm-content': {
+    backgroundColor: 'var(--bg-input)',
+  },
+  '.cm-gutters': {
+    backgroundColor: 'var(--bg-input)',
+    border: 'none',
+  },
+  '.cm-activeLine, .cm-activeLineGutter': {
+    backgroundColor: 'color-mix(in srgb, var(--bg-elevated) 65%, var(--bg-input))',
   },
 })
 
@@ -55,6 +81,7 @@ const CodeEditor = forwardRef(function CodeEditor(
         }),
         EditorView.editable.of(!disabled),
         theme === 'dark' ? oneDark : lightTheme,
+        sharedEditorTheme,
       ],
     })
 

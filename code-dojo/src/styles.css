@@ -122,7 +122,7 @@ button {
 
 .app-shell {
   min-height: 100vh;
-  padding: 28px;
+  padding: 24px;
 }
 
 .screen-center,
@@ -251,7 +251,7 @@ button {
   gap: 24px;
   padding: 14px 18px;
   border-radius: 20px;
-  margin-bottom: 16px;
+  margin-bottom: 14px;
 }
 
 .topbar-brand,
@@ -641,17 +641,19 @@ button {
 }
 
 .split-layout {
+  --workspace-panel-min-height: clamp(620px, calc(100vh - 220px), 760px);
   display: grid;
   grid-template-columns: minmax(320px, 40%) minmax(420px, 60%);
   gap: 16px;
-  min-height: calc(100vh - 124px);
+  align-items: stretch;
 }
 
 .workspace-main-panels {
   display: grid;
   grid-template-columns: minmax(0, 1.15fr) minmax(320px, 0.85fr);
   gap: 16px;
-  min-height: calc(100vh - 124px);
+  min-height: var(--workspace-panel-min-height);
+  align-items: stretch;
 }
 
 .exercise-detail,
@@ -659,16 +661,22 @@ button {
   border-radius: 20px;
 }
 
+.exercise-detail,
+.editor-panel,
+.review-panel {
+  min-height: var(--workspace-panel-min-height);
+}
+
 .exercise-detail {
-  padding: 22px;
-  overflow-y: auto;
-  max-height: calc(100vh - 124px);
+  padding: 16px;
+  overflow: visible;
+  max-height: none;
 }
 
 .detail-block {
   display: grid;
   gap: 10px;
-  margin-bottom: 20px;
+  margin-bottom: 12px;
 }
 
 .detail-title {
@@ -689,12 +697,12 @@ button {
 .exercise-title {
   font-size: 24px;
   line-height: 1.2;
-  margin-bottom: 18px;
+  margin-bottom: 10px;
 }
 
 .detail-divider {
   height: 1px;
-  margin-bottom: 18px;
+  margin-bottom: 12px;
   background: var(--border-subtle);
 }
 
@@ -707,7 +715,7 @@ button {
 .detail-copy {
   color: var(--text-primary);
   font-size: 14px;
-  line-height: 1.7;
+  line-height: 1.55;
 }
 
 .tag-row {
@@ -733,7 +741,7 @@ button {
 .example-block,
 .hint-box,
 .solution-box {
-  padding: 14px;
+  padding: 12px;
   border-radius: 12px;
   background: var(--bg-elevated);
   border: 1px solid var(--border-subtle);
@@ -755,16 +763,16 @@ button {
   padding-left: 18px;
   color: var(--text-secondary);
   font-size: 13px;
-  line-height: 1.8;
+  line-height: 1.6;
 }
 
 .timer {
   justify-content: space-between;
-  padding: 14px 16px;
+  padding: 10px 14px;
   border-radius: 14px;
   border: 1px solid var(--border-subtle);
   background: var(--bg-elevated);
-  margin-bottom: 18px;
+  margin-bottom: 12px;
 }
 
 .timer > div {
@@ -868,11 +876,15 @@ button:disabled {
 .editor-panel {
   padding: 0;
   overflow: hidden;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
 }
 
 .review-panel {
   padding: 0;
   overflow: hidden;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
 }
 
 .editor-header {
@@ -893,8 +905,8 @@ button:disabled {
 
 .editor-surface {
   display: grid;
-  grid-template-rows: auto minmax(220px, 1fr);
-  min-height: calc(100vh - 156px);
+  grid-template-rows: auto minmax(240px, 1fr);
+  min-height: 100%;
 }
 
 .editor-toolbar {
@@ -944,6 +956,7 @@ button:disabled {
   min-height: 240px;
   font-family: Menlo, Monaco, 'Courier New', monospace;
   font-size: 14px;
+  background: var(--bg-input);
 }
 
 .console-panel {
@@ -955,6 +968,7 @@ button:disabled {
 
 .review-surface {
   height: 100%;
+  min-height: 0;
 }
 
 .console-label {
@@ -1701,8 +1715,14 @@ tbody tr:hover {
     min-height: 0;
   }
 
+  .exercise-detail,
+  .editor-panel,
   .review-panel {
-    min-height: 260px;
+    height: auto;
+  }
+
+  .exercise-detail {
+    max-height: none;
   }
 }
 
