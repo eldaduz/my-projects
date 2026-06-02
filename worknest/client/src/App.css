@@ -1315,10 +1315,6 @@
     linear-gradient(135deg, rgba(225, 236, 231, 0.9), rgba(185, 205, 198, 0.82));
 }
 
-.location-carousel-controls {
-  z-index: 3;
-}
-
 .location-hero-overlay {
   position: absolute;
   inset-inline-end: 1.5rem;
