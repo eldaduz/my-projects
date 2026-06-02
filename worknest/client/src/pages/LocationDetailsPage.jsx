@@ -9,28 +9,29 @@ import {
   getAddressDisplayName,
   getBranchDisplayName,
   getFacilityLabel,
+  getPreferredImagePaths,
 } from '../utils/displayLabels.js';
 
 const branchHeroGalleryMap = {
   'WorkNest Tel Aviv': [
-    '/images/branches/worknest-tel-aviv-hero-1.png',
-    '/images/branches/worknest-tel-aviv-hero-2.png',
+    '/images/branches/worknest-tel-aviv-hero-1.webp',
+    '/images/branches/worknest-tel-aviv-hero-2.webp',
   ],
   'WorkNest Herzliya': [
-    '/images/branches/worknest-herzliya-hero-1.png',
-    '/images/branches/worknest-herzliya-hero-2.png',
+    '/images/branches/worknest-herzliya-hero-1.webp',
+    '/images/branches/worknest-herzliya-hero-2.webp',
   ],
   'WorkNest Jerusalem': [
-    '/images/branches/worknest-jerusalem-hero-1.png',
-    '/images/branches/worknest-jerusalem-hero-2.png',
+    '/images/branches/worknest-jerusalem-hero-1.webp',
+    '/images/branches/worknest-jerusalem-hero-2.webp',
   ],
   'WorkNest Haifa': [
-    '/images/branches/worknest-haifa-hero-1.png',
-    '/images/branches/worknest-haifa-hero-2.png',
+    '/images/branches/worknest-haifa-hero-1.webp',
+    '/images/branches/worknest-haifa-hero-2.webp',
   ],
   "WorkNest Be'er Sheva": [
-    '/images/branches/worknest-beer-sheva-hero-1.png',
-    '/images/branches/worknest-beer-sheva-hero-2.png',
+    '/images/branches/worknest-beer-sheva-hero-1.webp',
+    '/images/branches/worknest-beer-sheva-hero-2.webp',
   ],
 };
 
@@ -43,7 +44,7 @@ function getBranchGalleryCandidates(branch) {
   const imageCandidates = [...plannedGalleryImages];
 
   if (branch.imageUrl) {
-    imageCandidates.push(branch.imageUrl);
+    imageCandidates.push(getPreferredImagePaths(branch.imageUrl)[0]);
   }
 
   return [...new Set(imageCandidates)];
@@ -146,6 +147,18 @@ export default function LocationDetailsPage({ branchId }) {
     ? workspaces.filter((workspace) => workspace.type === selectedWorkspaceType)
     : workspaces;
 
+  function handlePreviousSlide() {
+    setActiveSlideIndex((currentIndex) =>
+      currentIndex === 0 ? heroImages.length - 1 : currentIndex - 1,
+    );
+  }
+
+  function handleNextSlide() {
+    setActiveSlideIndex((currentIndex) =>
+      currentIndex === heroImages.length - 1 ? 0 : currentIndex + 1,
+    );
+  }
+
   const branchRatingValue = Number(branch?.rating ?? 0);
   const roundedBranchRating = Math.max(0, Math.min(5, Math.round(branchRatingValue)));
   const branchRatingStars = `${'★'.repeat(roundedBranchRating)}${'☆'.repeat(5 - roundedBranchRating)}`;
@@ -182,6 +195,31 @@ export default function LocationDetailsPage({ branchId }) {
               <span className="card-image-badge">תמונה תוצג בקרוב</span>
             </div>
           )}
+
+          {heroImages.length > 1 ? (
+            <div
+              className="carousel-controls location-carousel-controls"
+              aria-label="ניווט גלריית מיקום"
+            >
+              <span className="carousel-location-label">{getBranchDisplayName(branch.name)}</span>
+              <button
+                type="button"
+                className="carousel-arrow"
+                onClick={handleNextSlide}
+                aria-label="לתמונה הבאה"
+              >
+                ‹
+              </button>
+              <button
+                type="button"
+                className="carousel-arrow"
+                onClick={handlePreviousSlide}
+                aria-label="לתמונה הקודמת"
+              >
+                ›
+              </button>
+            </div>
+          ) : null}
 
           <div className="location-hero-overlay section-stack">
             <div className="location-hero-top-row">

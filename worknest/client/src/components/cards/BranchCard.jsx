@@ -1,6 +1,8 @@
+import { useEffect, useState } from 'react';
 import {
   getAddressDisplayName,
   getBranchDisplayName,
+  getBranchImagePaths,
   getFacilityLabel,
 } from '../../utils/displayLabels.js';
 
@@ -14,6 +16,18 @@ function renderRating(rating) {
 
 export default function BranchCard({ branch, ctaLabel = 'לפרטי המיקום' }) {
   const detailsPath = `/locations/${branch.id}`;
+  const imageCandidates = getBranchImagePaths(branch.name, branch.imageUrl);
+  const [activeImageIndex, setActiveImageIndex] = useState(0);
+
+  useEffect(() => {
+    setActiveImageIndex(0);
+  }, [branch.imageUrl, branch.name]);
+
+  function handleImageError() {
+    setActiveImageIndex((currentIndex) => currentIndex + 1);
+  }
+
+  const activeImageUrl = imageCandidates[activeImageIndex] || '';
 
   return (
     <article className="data-card branch-card">
@@ -23,12 +37,13 @@ export default function BranchCard({ branch, ctaLabel = 'לפרטי המיקום
         data-link
         aria-label={`לפרטי המיקום ${getBranchDisplayName(branch.name)}`}
       >
-        {branch.imageUrl ? (
+        {activeImageUrl ? (
           <img
             className="card-image"
-            src={branch.imageUrl}
+            src={activeImageUrl}
             alt={getBranchDisplayName(branch.name)}
             loading="eager"
+            onError={handleImageError}
           />
         ) : (
           <div className="card-image-placeholder">

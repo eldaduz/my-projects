@@ -53,6 +53,14 @@ const WORKSPACE_NAME_LABELS = {
   'Managed Suite B': 'סוויטת צוות B',
 };
 
+const BRANCH_IMAGE_BASENAMES = {
+  'WorkNest Tel Aviv': 'worknest-tel-aviv',
+  'WorkNest Herzliya': 'worknest-herzliya',
+  'WorkNest Jerusalem': 'worknest-jerusalem',
+  'WorkNest Haifa': 'worknest-haifa',
+  "WorkNest Be'er Sheva": 'worknest-beer-sheva',
+};
+
 const WORKSPACE_IMAGE_BASENAMES = {
   'Office A': 'office-a',
   'Office B': 'office-b',
@@ -103,6 +111,10 @@ function getMappedLabel(value, labelsMap) {
   return labelsMap[value] || value;
 }
 
+function getUniqueImagePaths(imagePaths) {
+  return [...new Set(imagePaths.filter(Boolean))];
+}
+
 export function getBranchDisplayName(branchName) {
   return getMappedLabel(branchName, BRANCH_NAME_LABELS);
 }
@@ -137,6 +149,29 @@ export function getWorkspaceImagePath(name) {
   return workspaceImagePaths[0] || '';
 }
 
+export function getPreferredImagePaths(imageUrl) {
+  if (!imageUrl) {
+    return [];
+  }
+
+  const webpImageUrl = imageUrl.replace(/\.(png|jpe?g)$/i, '.webp');
+
+  if (webpImageUrl === imageUrl) {
+    return [imageUrl];
+  }
+
+  return getUniqueImagePaths([webpImageUrl, imageUrl]);
+}
+
+export function getBranchImagePaths(branchName, imageUrl = '') {
+  const imageBaseName = BRANCH_IMAGE_BASENAMES[branchName];
+  const mappedImagePaths = imageBaseName
+    ? [`/images/branches/${imageBaseName}.webp`, `/images/branches/${imageBaseName}.png`]
+    : [];
+
+  return getUniqueImagePaths([...mappedImagePaths, ...getPreferredImagePaths(imageUrl)]);
+}
+
 export function getWorkspaceImagePaths(name) {
   if (!name) {
     return [];
@@ -148,7 +183,7 @@ export function getWorkspaceImagePaths(name) {
     return [];
   }
 
-  return [`/images/workspaces/${imageBaseName}.jpg`, `/images/workspaces/${imageBaseName}.png`];
+  return [`/images/workspaces/${imageBaseName}.webp`, `/images/workspaces/${imageBaseName}.png`];
 }
 
 export function getEquipmentLabel(equipment) {

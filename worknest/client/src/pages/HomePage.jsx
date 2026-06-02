@@ -7,31 +7,31 @@ import LoadingState from '../components/ui/LoadingState.jsx';
 
 const heroSlides = [
   {
-    imageUrl: '/images/hero/worknest-hero-tel-aviv.png',
+    imageUrl: '/images/hero/worknest-hero-tel-aviv.webp',
     cityLabel: 'תל אביב',
     title: 'חללי עבודה בלב העיר',
     description: 'משרדים פרטיים וחדרי ישיבות במיקומים שמתאימים לפגישות, ריכוז ועבודה גמישה.',
   },
   {
-    imageUrl: '/images/hero/worknest-hero-herzliya.png',
+    imageUrl: '/images/hero/worknest-hero-herzliya.webp',
     cityLabel: 'הרצליה',
     title: 'עבודה קרובה למרכזי עסקים',
     description: 'חללים נוחים לצוותים, לשיחות לקוחות וליום עבודה ממוקד ליד אזורי התעסוקה.',
   },
   {
-    imageUrl: '/images/hero/worknest-hero-jerusalem.png',
+    imageUrl: '/images/hero/worknest-hero-jerusalem.webp',
     cityLabel: 'ירושלים',
     title: 'סביבת עבודה שקטה ומזמינה',
     description: 'בחרו סניף שמתאים ליום עבודה רגוע, לפגישות צוות או לתכנון ממוקד.',
   },
   {
-    imageUrl: '/images/hero/worknest-hero-haifa.png',
+    imageUrl: '/images/hero/worknest-hero-haifa.webp',
     cityLabel: 'חיפה',
     title: 'יום עבודה עם מרחב לנשימה',
     description: 'מיקומים נוחים לצוותים קטנים, לפגישות יצירתיות ולשגרת עבודה גמישה.',
   },
   {
-    imageUrl: '/images/hero/worknest-hero-beer-sheva.png',
+    imageUrl: '/images/hero/worknest-hero-beer-sheva.webp',
     cityLabel: 'באר שבע',
     title: 'חללי עבודה שמתחילים קרוב אליכם',
     description: 'הזמינו משרד, חדר ישיבות או סוויטת צוות ליום עבודה פשוט וברור.',

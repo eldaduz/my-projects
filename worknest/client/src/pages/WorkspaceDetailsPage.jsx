@@ -5,8 +5,10 @@ import ErrorMessage from '../components/ui/ErrorMessage.jsx';
 import LoadingState from '../components/ui/LoadingState.jsx';
 import {
   getEquipmentLabel,
+  getPreferredImagePaths,
   getWorkspaceDescription,
   getWorkspaceDisplayName,
+  getWorkspaceImagePaths,
   getWorkspaceTypeLabel,
 } from '../utils/displayLabels.js';
 
@@ -32,6 +34,24 @@ export default function WorkspaceDetailsPage({ workspaceId }) {
 
     loadWorkspace();
   }, [workspaceId]);
+
+  const imageCandidates = workspace
+    ? [
+        ...new Set([
+          ...getWorkspaceImagePaths(workspace.name),
+          ...getPreferredImagePaths(workspace.imageUrl),
+        ]),
+      ]
+    : [];
+  const [activeImageIndex, setActiveImageIndex] = useState(0);
+
+  useEffect(() => {
+    setActiveImageIndex(0);
+  }, [workspace?.id, workspace?.imageUrl, workspace?.name]);
+
+  function handleImageError() {
+    setActiveImageIndex((currentIndex) => currentIndex + 1);
+  }
 
   function handleQuickReservation() {
     if (!workspace) {
@@ -69,12 +89,13 @@ export default function WorkspaceDetailsPage({ workspaceId }) {
       {!isLoading && !errorMessage && workspace ? (
         <article className="hero-card location-summary-card">
           <div className="location-summary-grid">
-            {workspace.imageUrl ? (
+            {imageCandidates[activeImageIndex] ? (
               <img
                 className="card-image card-image-detail"
-                src={workspace.imageUrl}
+                src={imageCandidates[activeImageIndex]}
                 alt={getWorkspaceDisplayName(workspace.name)}
                 loading="eager"
+                onError={handleImageError}
               />
             ) : (
               <div className="card-image-placeholder card-image-placeholder-workspace">
