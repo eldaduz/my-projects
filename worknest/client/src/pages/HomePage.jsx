@@ -160,6 +160,49 @@ export default function HomePage() {
   return (
     <div className="section-stack public-page-layout home-page-layout">
       <section className="home-hero">
+        <form className="floating-search-card" onSubmit={handleSearchSubmit}>
+          <div className="floating-search-copy">
+            <h2 className="section-title">מצאו חלל עבודה</h2>
+            <p className="page-description">בחרו עיר וסוג חלל כדי להתחיל</p>
+          </div>
+
+          <label className="floating-search-field">
+            <span className="auth-field-label">עיר</span>
+            <select
+              className="floating-search-input"
+              value={cityFilter}
+              onChange={(event) => setCityFilter(event.target.value)}
+            >
+              <option value="">כל הערים</option>
+              {cityOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label className="floating-search-field">
+            <span className="auth-field-label">סוג חלל</span>
+            <select
+              className="floating-search-input"
+              value={workspaceTypeFilter}
+              onChange={(event) => setWorkspaceTypeFilter(event.target.value)}
+            >
+              <option value="">כל הסוגים</option>
+              {workspaceTypeOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <button type="submit" className="floating-search-button">
+            חיפוש
+          </button>
+        </form>
+
         <div className="home-hero-media">
           {heroSlides.map((slide, index) => (
             <HeroSlide
@@ -172,67 +215,26 @@ export default function HomePage() {
           ))}
 
           <div className="carousel-controls" aria-label="ניווט קרוסלה">
-            <span className="carousel-location-label">{activeSlide.cityLabel}</span>
-            <button
-              type="button"
-              className="carousel-arrow"
-              onClick={handleNextSlide}
-              aria-label="לתמונה הבאה"
-            >
-              ‹
-            </button>
-            <button
-              type="button"
-              className="carousel-arrow"
-              onClick={handlePreviousSlide}
-              aria-label="לתמונה הקודמת"
-            >
-              ›
-            </button>
-          </div>
-
-          <form className="floating-search-card" onSubmit={handleSearchSubmit}>
-            <div className="floating-search-copy">
-              <h2 className="section-title">מצאו חלל עבודה</h2>
-              <p className="page-description">בחרו עיר וסוג חלל כדי להתחיל</p>
+            <div className="carousel-arrow-group">
+              <button
+                type="button"
+                className="carousel-arrow"
+                onClick={handleNextSlide}
+                aria-label="לתמונה הבאה"
+              >
+                ‹
+              </button>
+              <button
+                type="button"
+                className="carousel-arrow"
+                onClick={handlePreviousSlide}
+                aria-label="לתמונה הקודמת"
+              >
+                ›
+              </button>
             </div>
-
-            <label className="floating-search-field">
-              <span className="auth-field-label">עיר</span>
-              <select
-                className="floating-search-input"
-                value={cityFilter}
-                onChange={(event) => setCityFilter(event.target.value)}
-              >
-                <option value="">כל הערים</option>
-                {cityOptions.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </label>
-
-            <label className="floating-search-field">
-              <span className="auth-field-label">סוג חלל</span>
-              <select
-                className="floating-search-input"
-                value={workspaceTypeFilter}
-                onChange={(event) => setWorkspaceTypeFilter(event.target.value)}
-              >
-                <option value="">כל הסוגים</option>
-                {workspaceTypeOptions.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </label>
-
-            <button type="submit" className="floating-search-button">
-              חיפוש
-            </button>
-          </form>
+            <span className="carousel-location-label">{activeSlide.cityLabel}</span>
+          </div>
         </div>
       </section>
 
