@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import Branch from '../models/Branch.js';
+import { createBranchSlug } from '../utils/branchSlug.js';
 
 const isValidRating = (rating) => {
   return ['1', '2', '3', '4', '5'].includes(rating);
@@ -20,9 +21,12 @@ const escapeRegex = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 const hasField = (object, fieldName) => Object.prototype.hasOwnProperty.call(object, fieldName);
 
+const getBranchSlug = (branch) => branch.slug || createBranchSlug(branch.name);
+
 const formatBranch = (branch) => ({
   id: branch._id.toString(),
   name: branch.name,
+  slug: getBranchSlug(branch),
   city: branch.city,
   address: branch.address,
   imageUrl: branch.imageUrl,
@@ -30,6 +34,43 @@ const formatBranch = (branch) => ({
   facilities: branch.facilities,
   isActive: branch.isActive,
 });
+
+const formatPublicBranch = (branch) => {
+  const safeBranch = formatBranch(branch);
+  delete safeBranch.isActive;
+  return safeBranch;
+};
+
+const findActiveBranchBySlug = async (slug) => {
+  const branch = await Branch.findOne({
+    slug,
+    isActive: true,
+  }).lean();
+
+  if (branch) {
+    return branch;
+  }
+
+  const activeBranches = await Branch.find({ isActive: true }).lean();
+  const fallbackBranch = activeBranches.find((candidate) => getBranchSlug(candidate) === slug);
+
+  if (!fallbackBranch) {
+    return null;
+  }
+
+  if (!fallbackBranch.slug) {
+    await Branch.updateOne(
+      {
+        _id: fallbackBranch._id,
+        $or: [{ slug: { $exists: false } }, { slug: null }, { slug: '' }],
+      },
+      { slug },
+    );
+    fallbackBranch.slug = slug;
+  }
+
+  return fallbackBranch;
+};
 
 const buildBranchFilters = ({ search, city, rating, includeInactive = false }) => {
   const filters = {};
@@ -73,11 +114,7 @@ export const getBranches = async (req, res) => {
 
     const branches = await Branch.find(filters).lean();
 
-    const safeBranches = branches.map((branch) => {
-      const safeBranch = formatBranch(branch);
-      delete safeBranch.isActive;
-      return safeBranch;
-    });
+    const safeBranches = branches.map((branch) => formatPublicBranch(branch));
 
     return res.status(200).json({
       message: 'Branches loaded successfully',
@@ -139,15 +176,32 @@ export const getBranchById = async (req, res) => {
     return res.status(200).json({
       message: 'Branch loaded successfully',
       data: {
-        branch: {
-          id: branch._id.toString(),
-          name: branch.name,
-          city: branch.city,
-          address: branch.address,
-          imageUrl: branch.imageUrl,
-          rating: branch.rating,
-          facilities: branch.facilities,
-        },
+        branch: formatPublicBranch(branch),
+      },
+    });
+  } catch (error) {
+    return res.status(500).json({ message: 'Unexpected backend error' });
+  }
+};
+
+export const getBranchBySlug = async (req, res) => {
+  try {
+    const normalizedSlug = createBranchSlug(req.params.slug);
+
+    if (!normalizedSlug) {
+      return res.status(404).json({ message: 'Branch not found' });
+    }
+
+    const branch = await findActiveBranchBySlug(normalizedSlug);
+
+    if (!branch) {
+      return res.status(404).json({ message: 'Branch not found' });
+    }
+
+    return res.status(200).json({
+      message: 'Branch loaded successfully',
+      data: {
+        branch: formatPublicBranch(branch),
       },
     });
   } catch (error) {
@@ -157,7 +211,7 @@ export const getBranchById = async (req, res) => {
 
 export const createBranch = async (req, res) => {
   try {
-    const { name, city, address, imageUrl, rating, facilities, isActive } = req.body;
+    const { name, slug, city, address, imageUrl, rating, facilities, isActive } = req.body;
 
     if (!name) {
       return res.status(400).json({ message: 'Branch name is required' });
@@ -194,6 +248,11 @@ export const createBranch = async (req, res) => {
     const trimmedName = name.trim();
     const trimmedCity = city.trim();
     const trimmedAddress = address.trim();
+    const nextSlug = createBranchSlug(slug || trimmedName);
+
+    if (!nextSlug) {
+      return res.status(400).json({ message: 'Branch slug is required' });
+    }
 
     const existingBranch = await Branch.findOne({
       name: { $regex: `^${escapeRegex(trimmedName)}$`, $options: 'i' },
@@ -205,8 +264,15 @@ export const createBranch = async (req, res) => {
       return res.status(409).json({ message: 'Branch already exists' });
     }
 
+    const existingSlug = await Branch.findOne({ slug: nextSlug });
+
+    if (existingSlug) {
+      return res.status(409).json({ message: 'Branch slug already exists' });
+    }
+
     const newBranchData = {
       name: trimmedName,
+      slug: nextSlug,
       city: trimmedCity,
       address: trimmedAddress,
       imageUrl,
@@ -253,6 +319,16 @@ export const updateBranch = async (req, res) => {
       }
 
       updateData.name = req.body.name.trim();
+    }
+
+    if (hasField(req.body, 'slug')) {
+      const nextSlug = createBranchSlug(req.body.slug);
+
+      if (!nextSlug) {
+        return res.status(400).json({ message: 'Branch slug is required' });
+      }
+
+      updateData.slug = nextSlug;
     }
 
     if (hasField(req.body, 'city')) {
@@ -322,6 +398,21 @@ export const updateBranch = async (req, res) => {
 
     if (duplicateBranch) {
       return res.status(409).json({ message: 'Branch already exists' });
+    }
+
+    if (hasField(updateData, 'slug')) {
+      const duplicateSlug = await Branch.findOne({
+        _id: { $ne: branchId },
+        slug: updateData.slug,
+      });
+
+      if (duplicateSlug) {
+        return res.status(409).json({ message: 'Branch slug already exists' });
+      }
+    }
+
+    if (!branch.slug && !hasField(updateData, 'slug')) {
+      updateData.slug = createBranchSlug(nextName);
     }
 
     Object.assign(branch, updateData);

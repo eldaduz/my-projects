@@ -19,6 +19,7 @@ export const seedUsers = [
 export const seedBranches = [
   {
     name: 'WorkNest Tel Aviv',
+    slug: 'worknest-tel-aviv',
     city: 'Tel Aviv',
     address: 'Rothschild Boulevard 22, Tel Aviv',
     imageUrl: '/images/branches/worknest-tel-aviv.webp',
@@ -28,6 +29,7 @@ export const seedBranches = [
   },
   {
     name: 'WorkNest Herzliya',
+    slug: 'worknest-herzliya',
     city: 'Herzliya',
     address: 'Abba Eban Boulevard 12, Herzliya',
     imageUrl: '/images/branches/worknest-herzliya.webp',
@@ -37,6 +39,7 @@ export const seedBranches = [
   },
   {
     name: 'WorkNest Jerusalem',
+    slug: 'worknest-jerusalem',
     city: 'Jerusalem',
     address: 'Jaffa Road 89, Jerusalem',
     imageUrl: '/images/branches/worknest-jerusalem.webp',
@@ -46,6 +49,7 @@ export const seedBranches = [
   },
   {
     name: 'WorkNest Haifa',
+    slug: 'worknest-haifa',
     city: 'Haifa',
     address: 'Hanassi Boulevard 45, Haifa',
     imageUrl: '/images/branches/worknest-haifa.webp',
@@ -55,6 +59,7 @@ export const seedBranches = [
   },
   {
     name: "WorkNest Be'er Sheva",
+    slug: 'worknest-beer-sheva',
     city: "Be'er Sheva",
     address: "Rager Boulevard 41, Be'er Sheva",
     imageUrl: '/images/branches/worknest-beer-sheva.webp',

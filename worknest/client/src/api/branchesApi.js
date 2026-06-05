@@ -24,3 +24,7 @@ export function getBranches(filters = {}) {
 export function getBranchById(branchId) {
   return apiRequest(`/branches/${branchId}`);
 }
+
+export function getBranchBySlug(slug) {
+  return apiRequest(`/branches/slug/${encodeURIComponent(slug)}`);
+}

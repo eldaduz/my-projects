@@ -142,9 +142,10 @@ export default function HomePage() {
       searchParams.set('type', workspaceTypeFilter);
     }
 
+    const branchPathValue = selectedBranch.slug || selectedBranch.id;
     const nextPath = searchParams.toString()
-      ? `/locations/${selectedBranch.id}?${searchParams.toString()}`
-      : `/locations/${selectedBranch.id}`;
+      ? `/locations/${branchPathValue}?${searchParams.toString()}`
+      : `/locations/${branchPathValue}`;
 
     navigateTo(nextPath);
   }

@@ -15,7 +15,8 @@ function renderRating(rating) {
 }
 
 export default function BranchCard({ branch, ctaLabel = 'לפרטי המיקום' }) {
-  const detailsPath = `/locations/${branch.id}`;
+  const branchPathValue = branch.slug || branch.id;
+  const detailsPath = `/locations/${branchPathValue}`;
   const imageCandidates = getBranchImagePaths(branch.name, branch.imageUrl);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
 

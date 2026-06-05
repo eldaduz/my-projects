@@ -25,9 +25,11 @@ const TOKEN_STORAGE_KEY = 'worknestToken';
 // Custom DOM event used for cross-component communication (workspace card → reservation modal).
 const RESERVATION_REQUEST_EVENT = 'worknest:reservation-request';
 
-// ── Custom SPA Router Utilities ───────────────────────────────────────
-// The app uses a hand-rolled router (no React Router library).
-// These utilities handle path normalization, dynamic params, and route matching.
+// ── Navigation mechanism (no router library) ────────────────────────
+// Navigation works in 3 steps:
+//   1. navigateTo() changes the URL silently (pushState) and fires a popstate event.
+//   2. The popstate listener updates currentPath state → React re-renders.
+//   3. getCurrentRoute() maps the new path to a component → new page appears.
 
 // Strip trailing slashes so `/locations/` and `/locations` match the same route.
 function normalizePath(pathname) {
@@ -38,7 +40,7 @@ function normalizePath(pathname) {
   return pathname.endsWith('/') ? pathname.slice(0, -1) : pathname;
 }
 
-// Extract a dynamic segment from the URL (e.g. "/locations/abc123" → "abc123").
+// Extract a dynamic segment from the URL (e.g. "/locations/worknest-herzliya" → "worknest-herzliya").
 function getDynamicParam(pathname, routeStart) {
   if (!pathname.startsWith(routeStart)) {
     return null;
@@ -48,7 +50,7 @@ function getDynamicParam(pathname, routeStart) {
   return value && !value.includes('/') ? value : null;
 }
 
-// Route table: maps URL paths to page components. Acts as the app's route config.
+// Step 3: maps each URL path to a page component via a chain of if-checks.
 function getCurrentRoute(pathname) {
   const normalizedPath = normalizePath(pathname);
 
@@ -60,9 +62,9 @@ function getCurrentRoute(pathname) {
     return { component: LocationsPage, params: {} };
   }
 
-  const branchId = getDynamicParam(normalizedPath, '/locations/');
-  if (branchId) {
-    return { component: LocationDetailsPage, params: { branchId } };
+  const branchSlug = getDynamicParam(normalizedPath, '/locations/');
+  if (branchSlug) {
+    return { component: LocationDetailsPage, params: { branchSlug } };
   }
 
   const workspaceId = getDynamicParam(normalizedPath, '/workspaces/');
@@ -383,6 +385,8 @@ export default function App() {
     }
   }
 
+  // Storing the component in a variable lets React render it dynamically —
+  // this is what makes the router work without a library.
   const PageComponent = activeRoute.component;
 
   // ── Render ──

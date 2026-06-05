@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { getBranchById } from '../api/branchesApi.js';
+import { getBranchById, getBranchBySlug } from '../api/branchesApi.js';
 import { getWorkspacesByBranch } from '../api/workspacesApi.js';
 import WorkspaceCard from '../components/cards/WorkspaceCard.jsx';
 import EmptyState from '../components/ui/EmptyState.jsx';
@@ -60,7 +60,11 @@ function preloadImage(imageUrl) {
   });
 }
 
-export default function LocationDetailsPage({ branchId }) {
+function isMongoIdLike(value) {
+  return /^[a-f0-9]{24}$/i.test(value || '');
+}
+
+export default function LocationDetailsPage({ branchSlug }) {
   const [branch, setBranch] = useState(null);
   const [workspaces, setWorkspaces] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -76,12 +80,22 @@ export default function LocationDetailsPage({ branchId }) {
       setErrorMessage('');
 
       try {
-        const [branchResponse, workspacesResponse] = await Promise.all([
-          getBranchById(branchId),
-          getWorkspacesByBranch(branchId),
-        ]);
+        let branchResponse;
 
-        setBranch(branchResponse.data.branch);
+        try {
+          branchResponse = await getBranchBySlug(branchSlug);
+        } catch (error) {
+          if (!isMongoIdLike(branchSlug)) {
+            throw error;
+          }
+
+          branchResponse = await getBranchById(branchSlug);
+        }
+
+        const loadedBranch = branchResponse.data.branch;
+        const workspacesResponse = await getWorkspacesByBranch(loadedBranch.id);
+
+        setBranch(loadedBranch);
         setWorkspaces(workspacesResponse.data.workspaces);
       } catch (error) {
         setErrorMessage('משהו השתבש. נסו שוב בעוד רגע.');
@@ -91,7 +105,7 @@ export default function LocationDetailsPage({ branchId }) {
     }
 
     loadLocationData();
-  }, [branchId]);
+  }, [branchSlug]);
 
   useEffect(() => {
     if (!branch) {

@@ -409,11 +409,15 @@ export function ReservationFormPanel({
 
           <DateField
             id="reservation-end-date"
-            label="תאריך סיום"
+            label="תאריך סיום (לא כולל)"
             value={endDate}
             min={startDate || todayDateString}
             onChange={(event) => setEndDate(event.target.value)}
           />
+
+          <p className="auth-modal-note">
+            להזמנה של יום אחד, בחרו תאריך התחלה היום ותאריך סיום מחר.
+          </p>
 
           <p className="status-note">הזמינות והמחיר הסופי יאושרו על ידי המערכת לאחר שליחת הבקשה.</p>
 

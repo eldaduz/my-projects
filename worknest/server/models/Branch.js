@@ -7,6 +7,13 @@ const branchSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
+    slug: {
+      type: String,
+      required: true,
+      unique: true,
+      trim: true,
+      lowercase: true,
+    },
     city: {
       type: String,
       required: true,
