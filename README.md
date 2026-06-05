@@ -11,6 +11,7 @@ WorkNest is a WeWork-inspired coworking reservation system built as a full-stack
 
 * **Live Demo:** Deployment in progress
 * **Backend API:** [Render API](https://my-projects-elsh.onrender.com/api/health)
+* **Hosting note:** The backend currently runs on Render Free, so the first API request after inactivity may take longer while the service wakes up. A refresh or second request is usually faster.
 * **Tech Stack:** React, Vite, Node.js, Express, MongoDB Atlas, Mongoose, JWT, bcrypt, Render, Vercel
 * **Explore the Code:** [View Project Folder](./worknest) (See the dedicated README for architecture, setup, and deployment details).
 
