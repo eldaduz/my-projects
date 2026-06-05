@@ -14,6 +14,8 @@ const formatAvailableWorkspace = (workspace, branchName) => ({
   equipment: workspace.equipment,
 });
 
+// Core overlap check: two date ranges overlap when start1 < end2 AND start2 < end1.
+// This single query covers all overlap cases (partial, full, contained).
 export const hasConfirmedOverlappingReservation = async ({ workspaceId, startDate, endDate }) => {
   const overlappingReservation = await Reservation.findOne({
     workspaceId,
@@ -25,6 +27,10 @@ export const hasConfirmedOverlappingReservation = async ({ workspaceId, startDat
   return Boolean(overlappingReservation);
 };
 
+// Three-step availability pipeline:
+// 1. Find active branches matching filters
+// 2. Find active workspaces within those branches
+// 3. Exclude workspaces that have overlapping confirmed reservations
 export const findAvailableWorkspaces = async ({
   startDate,
   endDate,
@@ -77,6 +83,7 @@ export const findAvailableWorkspaces = async ({
     .select('workspaceId')
     .lean();
 
+  // Use a Set for O(1) lookup instead of nested array searches.
   const unavailableWorkspaceIds = new Set(
     overlappingReservations.map((reservation) => reservation.workspaceId.toString()),
   );

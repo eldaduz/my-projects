@@ -31,25 +31,44 @@ const formatBranch = (branch) => ({
   isActive: branch.isActive,
 });
 
+const buildBranchFilters = ({ search, city, rating, includeInactive = false }) => {
+  const filters = {};
+
+  if (!includeInactive) {
+    filters.isActive = true;
+  }
+
+  if (rating !== undefined) {
+    if (!isValidRating(rating)) {
+      return {
+        error: {
+          status: 400,
+          message: 'Invalid query value',
+        },
+      };
+    }
+
+    filters.rating = Number(rating);
+  }
+
+  if (search) {
+    filters.name = { $regex: search, $options: 'i' };
+  }
+
+  if (city) {
+    filters.city = { $regex: `^${city}$`, $options: 'i' };
+  }
+
+  return { filters };
+};
+
 export const getBranches = async (req, res) => {
   try {
     const { search, city, rating } = req.query;
-    const filters = { isActive: true };
+    const { filters, error } = buildBranchFilters({ search, city, rating });
 
-    if (rating !== undefined) {
-      if (!isValidRating(rating)) {
-        return res.status(400).json({ message: 'Invalid query value' });
-      }
-
-      filters.rating = Number(rating);
-    }
-
-    if (search) {
-      filters.name = { $regex: search, $options: 'i' };
-    }
-
-    if (city) {
-      filters.city = { $regex: `^${city}$`, $options: 'i' };
+    if (error) {
+      return res.status(error.status).json({ message: error.message });
     }
 
     const branches = await Branch.find(filters).lean();
@@ -65,6 +84,34 @@ export const getBranches = async (req, res) => {
       data: {
         count: safeBranches.length,
         branches: safeBranches,
+      },
+    });
+  } catch (error) {
+    return res.status(500).json({ message: 'Unexpected backend error' });
+  }
+};
+
+export const getBranchesForAdmin = async (req, res) => {
+  try {
+    const { search, city, rating, includeInactive } = req.query;
+    const { filters, error } = buildBranchFilters({
+      search,
+      city,
+      rating,
+      includeInactive: includeInactive === 'true',
+    });
+
+    if (error) {
+      return res.status(error.status).json({ message: error.message });
+    }
+
+    const branches = await Branch.find(filters).lean();
+
+    return res.status(200).json({
+      message: 'Branches loaded successfully',
+      data: {
+        count: branches.length,
+        branches: branches.map((branch) => formatBranch(branch)),
       },
     });
   } catch (error) {

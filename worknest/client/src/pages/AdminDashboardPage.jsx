@@ -3,6 +3,7 @@ import { getBranches } from '../api/branchesApi.js';
 import {
   createBranch,
   createWorkspace,
+  getBranchesForAdmin,
   getAllReservations,
   updateBranch,
   updateWorkspace,
@@ -70,8 +71,8 @@ export default function AdminDashboardPage() {
   const [branchErrorMessage, setBranchErrorMessage] = useState('');
   const [branchSuccessMessage, setBranchSuccessMessage] = useState('');
   const [isSavingBranch, setIsSavingBranch] = useState(false);
-  const [selectedBranchToDeactivate, setSelectedBranchToDeactivate] = useState(null);
-  const [isDeactivatingBranch, setIsDeactivatingBranch] = useState(false);
+  const [selectedBranchForStatusChange, setSelectedBranchForStatusChange] = useState(null);
+  const [isSavingBranchStatus, setIsSavingBranchStatus] = useState(false);
   const [selectedWorkspaceBranchId, setSelectedWorkspaceBranchId] = useState('');
   const [workspaces, setWorkspaces] = useState([]);
   const [isLoadingWorkspaces, setIsLoadingWorkspaces] = useState(false);
@@ -123,7 +124,11 @@ export default function AdminDashboardPage() {
     setBranchListErrorMessage('');
 
     try {
-      const response = await getBranches();
+      const token = localStorage.getItem(TOKEN_STORAGE_KEY);
+      const response = token
+        ? await getBranchesForAdmin(token, { includeInactive: true })
+        : await getBranches();
+
       setBranches(response.data.branches);
     } catch (error) {
       setBranchListErrorMessage('משהו השתבש. נסו שוב בעוד רגע.');
@@ -345,8 +350,8 @@ export default function AdminDashboardPage() {
     }
   }
 
-  function openDeactivateModal(branch) {
-    setSelectedBranchToDeactivate(branch);
+  function openBranchStatusModal(branch) {
+    setSelectedBranchForStatusChange(branch);
     setBranchErrorMessage('');
     setBranchSuccessMessage('');
   }
@@ -357,12 +362,12 @@ export default function AdminDashboardPage() {
     setWorkspaceSuccessMessage('');
   }
 
-  function closeDeactivateModal() {
-    if (isDeactivatingBranch) {
+  function closeBranchStatusModal() {
+    if (isSavingBranchStatus) {
       return;
     }
 
-    setSelectedBranchToDeactivate(null);
+    setSelectedBranchForStatusChange(null);
   }
 
   function closeDeactivateWorkspaceModal() {
@@ -373,30 +378,33 @@ export default function AdminDashboardPage() {
     setSelectedWorkspaceToDeactivate(null);
   }
 
-  async function handleDeactivateBranch() {
-    if (!selectedBranchToDeactivate) {
+  async function handleBranchStatusChange() {
+    if (!selectedBranchForStatusChange) {
       return;
     }
 
     setBranchErrorMessage('');
     setBranchSuccessMessage('');
-    setIsDeactivatingBranch(true);
+    setIsSavingBranchStatus(true);
+
+    const nextIsActive = !selectedBranchForStatusChange.isActive;
+    const successMessage = nextIsActive ? 'המיקום שוחזר בהצלחה.' : 'המיקום הושבת בהצלחה.';
 
     try {
       const token = localStorage.getItem(TOKEN_STORAGE_KEY);
-      await updateBranch(selectedBranchToDeactivate.id, { isActive: false }, token);
+      await updateBranch(selectedBranchForStatusChange.id, { isActive: nextIsActive }, token);
 
-      if (editingBranch?.id === selectedBranchToDeactivate.id) {
+      if (editingBranch?.id === selectedBranchForStatusChange.id) {
         resetBranchForm();
       }
 
-      setSelectedBranchToDeactivate(null);
-      setBranchSuccessMessage('המיקום הושבת בהצלחה.');
+      setSelectedBranchForStatusChange(null);
+      setBranchSuccessMessage(successMessage);
       await loadBranches();
     } catch (error) {
       setBranchErrorMessage(mapBranchErrorMessage(error.message));
     } finally {
-      setIsDeactivatingBranch(false);
+      setIsSavingBranchStatus(false);
     }
   }
 
@@ -428,9 +436,11 @@ export default function AdminDashboardPage() {
   }
 
   function getSelectedBranchSummary() {
-    return branches.find((branch) => branch.id === selectedWorkspaceBranchId) || null;
+    return activeBranches.find((branch) => branch.id === selectedWorkspaceBranchId) || null;
   }
 
+  const activeBranches = branches.filter((branch) => branch.isActive !== false);
+  const inactiveBranches = branches.filter((branch) => branch.isActive === false);
   const selectedBranchSummary = getSelectedBranchSummary();
   const confirmedReservationsCount = reservations.filter(
     (reservation) => reservation.status === 'confirmed',
@@ -541,7 +551,7 @@ export default function AdminDashboardPage() {
             </div>
             <div className="admin-overview-card-body">
               <strong className="admin-overview-value">{branches.length}</strong>
-              <p className="placeholder-copy">מיקומים זמינים כרגע לניהול ולעדכון.</p>
+              <p className="placeholder-copy">סה״כ מיקומים שנטענו כרגע למסך הניהול.</p>
             </div>
           </article>
 
@@ -587,9 +597,9 @@ export default function AdminDashboardPage() {
         <section className="section-stack">
           <div className="page-header">
             <span className="eyebrow">ניהול מיקומים</span>
-            <h2 className="page-title admin-section-title">ניהול מיקומים פעילים</h2>
+            <h2 className="page-title admin-section-title">ניהול מיקומים</h2>
             <p className="page-description">
-              כאן אפשר ליצור מיקום חדש, לעדכן מיקום קיים, או להשבית מיקום כך שלא יוצג יותר למשתמשים.
+              כאן אפשר ליצור מיקום חדש, לעדכן מיקום קיים, להשבית מיקום, וגם לשחזר מיקום לא פעיל.
             </p>
           </div>
 
@@ -621,7 +631,7 @@ export default function AdminDashboardPage() {
             <ErrorMessage message={branchListErrorMessage} />
           ) : null}
           {!isLoadingBranches && !branchListErrorMessage && branches.length === 0 ? (
-            <EmptyState message="אין כרגע מיקומים פעילים להצגה." />
+            <EmptyState message="אין כרגע מיקומים להצגה." />
           ) : null}
 
           <div className="data-grid">
@@ -631,14 +641,20 @@ export default function AdminDashboardPage() {
                     key={branch.id}
                     branch={branch}
                     onEdit={handleEditBranch}
-                    onDeactivate={openDeactivateModal}
-                    isDeactivating={
-                      isDeactivatingBranch && selectedBranchToDeactivate?.id === branch.id
+                    onToggleActive={openBranchStatusModal}
+                    isSavingStatus={
+                      isSavingBranchStatus && selectedBranchForStatusChange?.id === branch.id
                     }
                   />
                 ))
               : null}
           </div>
+
+          {!isLoadingBranches && !branchListErrorMessage && inactiveBranches.length > 0 ? (
+            <p className="placeholder-copy">
+              מוצגים גם {inactiveBranches.length} מיקומים לא פעילים כדי לאפשר שחזור מהיר.
+            </p>
+          ) : null}
         </section>
       ) : null}
 
@@ -663,7 +679,7 @@ export default function AdminDashboardPage() {
                   onChange={(event) => handleWorkspaceBranchChange(event.target.value)}
                 >
                   <option value="">בחירת מיקום</option>
-                  {branches.map((branch) => (
+                  {activeBranches.map((branch) => (
                     <option key={branch.id} value={branch.id}>
                       {getBranchDisplayName(branch.name)} | {getAddressDisplayName(branch.address)}
                     </option>
@@ -694,7 +710,7 @@ export default function AdminDashboardPage() {
 
           {isWorkspaceFormOpen ? (
             <AdminWorkspaceForm
-              branches={branches}
+              branches={activeBranches}
               formValues={workspaceForm}
               isEditing={Boolean(editingWorkspace)}
               isSaving={isSavingWorkspace}
@@ -828,16 +844,18 @@ export default function AdminDashboardPage() {
         </section>
       ) : null}
 
-      {selectedBranchToDeactivate ? (
-        <div className="modal-backdrop" onClick={closeDeactivateModal}>
+      {selectedBranchForStatusChange ? (
+        <div className="modal-backdrop" onClick={closeBranchStatusModal}>
           <div className="modal-card" onClick={(event) => event.stopPropagation()}>
             <div className="modal-header">
-              <h3 className="modal-title">השבתת מיקום</h3>
+              <h3 className="modal-title">
+                {selectedBranchForStatusChange.isActive ? 'השבתת מיקום' : 'שחזור מיקום'}
+              </h3>
               <button
                 type="button"
                 className="modal-close-button"
-                onClick={closeDeactivateModal}
-                disabled={isDeactivatingBranch}
+                onClick={closeBranchStatusModal}
+                disabled={isSavingBranchStatus}
               >
                 ×
               </button>
@@ -846,25 +864,33 @@ export default function AdminDashboardPage() {
             <div className="modal-body">
               <div className="section-stack compact-stack">
                 <p className="placeholder-copy">
-                  האם להשבית את המיקום? משתמשים לא יראו אותו יותר ברשימת המיקומים.
+                  {selectedBranchForStatusChange.isActive
+                    ? 'האם להשבית את המיקום? משתמשים לא יראו אותו יותר ברשימת המיקומים.'
+                    : 'האם לשחזר את המיקום? לאחר השחזור הוא יחזור להופיע ברשימת המיקומים.'}
                 </p>
 
                 <div className="card-actions">
                   <button
                     type="button"
                     className="button-link-secondary"
-                    onClick={closeDeactivateModal}
-                    disabled={isDeactivatingBranch}
+                    onClick={closeBranchStatusModal}
+                    disabled={isSavingBranchStatus}
                   >
                     לא, חזרה
                   </button>
                   <button
                     type="button"
                     className="button-link"
-                    onClick={handleDeactivateBranch}
-                    disabled={isDeactivatingBranch}
+                    onClick={handleBranchStatusChange}
+                    disabled={isSavingBranchStatus}
                   >
-                    {isDeactivatingBranch ? 'משבית...' : 'כן, השבת מיקום'}
+                    {isSavingBranchStatus
+                      ? selectedBranchForStatusChange.isActive
+                        ? 'משבית...'
+                        : 'משחזר...'
+                      : selectedBranchForStatusChange.isActive
+                        ? 'כן, השבת מיקום'
+                        : 'כן, שחזר מיקום'}
                   </button>
                 </div>
               </div>

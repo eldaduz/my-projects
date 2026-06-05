@@ -106,7 +106,7 @@ export default function AdminWorkspaceForm({
                 type="text"
                 value={formValues.imageUrl}
                 onChange={(event) => onChange('imageUrl', event.target.value)}
-                placeholder="/images/workspaces/office-a.png"
+                placeholder="/images/workspaces/example.jpg"
               />
             </label>
           </div>

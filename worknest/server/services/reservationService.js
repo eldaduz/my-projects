@@ -6,6 +6,11 @@ import { hasConfirmedOverlappingReservation } from './availabilityService.js';
 import { formatDateOnly, getReservedDaysExclusive } from '../utils/dateUtils.js';
 import { calculateReservationTotalPrice } from '../utils/priceUtils.js';
 
+// Four formatters shape Reservation documents for different audiences:
+// - formatReservation: raw (after create)
+// - formatReservationSummary: user's list (with branch/workspace names)
+// - formatReservationDetails: single-reservation view
+// - formatAdminReservation: admin view (includes user name)
 const formatReservation = (reservation) => ({
   id: reservation._id.toString(),
   userId: reservation.userId.toString(),
@@ -60,6 +65,9 @@ const formatAdminReservation = (reservation) => ({
   totalPrice: reservation.totalPrice,
 });
 
+// Multi-step validation before writing to DB:
+// valid IDs → branch active → workspace active → workspace belongs to branch → no date overlap → price.
+// Each check returns a structured { error } object instead of throwing.
 export const createReservationRecord = async ({
   userId,
   branchId,
@@ -137,6 +145,8 @@ export const createReservationRecord = async ({
     };
   }
 
+  // Price calculated server-side to prevent client manipulation.
+  // pricePerDayAtBooking is a snapshot — immune to future price changes.
   const reservedDays = getReservedDaysExclusive(startDate, endDate);
   const pricePerDayAtBooking = workspace.pricePerDay;
   const totalPrice = calculateReservationTotalPrice({
@@ -188,6 +198,8 @@ export const getReservationDetailsById = async (reservationId) => {
   return formatReservationDetails(reservation);
 };
 
+// Both the reservation owner and admins can cancel.
+// Already-cancelled reservations return 400 to prevent duplicate cancellations.
 export const cancelReservationById = async ({ reservationId, userId, role }) => {
   const reservation = await Reservation.findById(reservationId);
 
@@ -232,6 +244,7 @@ export const cancelReservationById = async ({ reservationId, userId, role }) => 
   };
 };
 
+// Admin-only: returns all reservations with populated user, branch, and workspace names.
 export const getAllReservationsForAdmin = async ({ status, userId, branchId, workspaceId }) => {
   const filters = {};
 

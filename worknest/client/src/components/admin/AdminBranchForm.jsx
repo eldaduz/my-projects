@@ -89,7 +89,7 @@ export default function AdminBranchForm({
               type="text"
               value={formValues.imageUrl}
               onChange={(event) => onChange('imageUrl', event.target.value)}
-              placeholder="/images/branches/worknest-tel-aviv.png"
+              placeholder="/images/branches/worknest-example.jpg"
             />
           </label>
 

@@ -14,6 +14,8 @@ const TOKEN_STORAGE_KEY = 'worknestToken';
 const RESERVATION_SESSION_EXPIRED_MESSAGE =
   'פג תוקף ההתחברות. יש להתחבר מחדש כדי להשלים את ההזמנה.';
 
+// ── Date Helpers ────────────────────────────────────────────────────────
+
 function getTodayDateString() {
   const today = new Date();
   const year = today.getFullYear();
@@ -57,6 +59,9 @@ function getReservationDayCount(startDate, endDate) {
   return Number.isFinite(dayCount) && dayCount > 0 ? dayCount : '';
 }
 
+// ── Main Modal Component ────────────────────────────────────────────────
+// Two-panel structure: form panel (date selection + booking) or success panel (confirmation).
+// createdReservation state drives which panel is visible.
 export default function ReservationModal({
   isOpen,
   branchId,
@@ -121,6 +126,9 @@ export default function ReservationModal({
   );
 }
 
+// ── Custom Date Input ─────────────────────────────────────────────────────
+// Wraps a native <input type="date"> with a styled button shell.
+// The native input is hidden; clicking the button opens the browser date picker.
 function DateField({ id, label, value, min, onChange }) {
   const inputRef = useRef(null);
 
@@ -198,6 +206,9 @@ function DateField({ id, label, value, min, onChange }) {
   );
 }
 
+// ── Reservation Form Panel ────────────────────────────────────────────────
+// Flow: load branch+workspace data → user picks dates → submit to server.
+// If the session expires mid-flow, the action is saved for retry after re-login.
 export function ReservationFormPanel({
   branchId,
   workspaceId,
@@ -234,6 +245,7 @@ export function ReservationFormPanel({
       setStartDate('');
       setEndDate('');
 
+      // Load branch and workspace details in parallel for the reservation summary.
       try {
         const [branchResponse, workspaceResponse] = await Promise.all([
           getBranchById(branchId),
@@ -254,6 +266,8 @@ export function ReservationFormPanel({
     loadReservationSelection();
   }, [branchId, workspaceId]);
 
+  // Core booking function. Validates dates client-side, then sends to server.
+  // On 401 (session expired), triggers the re-login flow instead of showing a generic error.
   async function performReservationCreate(options = {}) {
     const { shouldRetryAfterLogin = false, retryCount = 0 } = options;
 
@@ -295,6 +309,8 @@ export function ReservationFormPanel({
         branchImageUrl: branch.imageUrl || '',
       });
     } catch (error) {
+      // Session expired during booking — notify App to open the login modal
+      // and store this action so it can be retried after re-login.
       if (error.status === 401 || isSessionErrorMessage(error.message)) {
         setSubmitErrorMessage(RESERVATION_SESSION_EXPIRED_MESSAGE);
         onInlineProtectedActionSessionExpired?.({
@@ -323,6 +339,8 @@ export function ReservationFormPanel({
     await performReservationCreate();
   }
 
+  // Auto-retry effect: after the user re-logs in, this effect detects the pending action
+  // and re-submits the reservation automatically (once).
   useEffect(() => {
     if (
       !currentUser ||
@@ -412,6 +430,8 @@ export function ReservationFormPanel({
   );
 }
 
+// ── Success Panel ─────────────────────────────────────────────────────────
+// Shown after a successful booking. Displays confirmation details and a navigation link.
 function ReservationSuccessPanel({ reservationDetails, onGoToMyReservations }) {
   const {
     reservation,

@@ -20,10 +20,16 @@ import AdminDashboardPage from './pages/AdminDashboardPage.jsx';
 import NotFoundPage from './pages/NotFoundPage.jsx';
 import AccessDeniedPage from './pages/AccessDeniedPage.jsx';
 
+// ── Constants ──────────────────────────────────────────────────────────
 const TOKEN_STORAGE_KEY = 'worknestToken';
+// Custom DOM event used for cross-component communication (workspace card → reservation modal).
 const RESERVATION_REQUEST_EVENT = 'worknest:reservation-request';
 
-// Keep paths consistent so `/locations/` and `/locations` behave the same.
+// ── Custom SPA Router Utilities ───────────────────────────────────────
+// The app uses a hand-rolled router (no React Router library).
+// These utilities handle path normalization, dynamic params, and route matching.
+
+// Strip trailing slashes so `/locations/` and `/locations` match the same route.
 function normalizePath(pathname) {
   if (!pathname || pathname === '/') {
     return '/';
@@ -32,7 +38,7 @@ function normalizePath(pathname) {
   return pathname.endsWith('/') ? pathname.slice(0, -1) : pathname;
 }
 
-// Dynamic routes let placeholder pages receive the ID from the URL.
+// Extract a dynamic segment from the URL (e.g. "/locations/abc123" → "abc123").
 function getDynamicParam(pathname, routeStart) {
   if (!pathname.startsWith(routeStart)) {
     return null;
@@ -42,6 +48,7 @@ function getDynamicParam(pathname, routeStart) {
   return value && !value.includes('/') ? value : null;
 }
 
+// Route table: maps URL paths to page components. Acts as the app's route config.
 function getCurrentRoute(pathname) {
   const normalizedPath = normalizePath(pathname);
 
@@ -95,11 +102,13 @@ function getCurrentRoute(pathname) {
   return { component: NotFoundPage, params: {} };
 }
 
+// Routes that require authentication. Unauthenticated users get a login prompt.
 function isProtectedPath(pathname) {
   return pathname === '/reservation' || pathname === '/my-reservations' || pathname === '/admin';
 }
 
-// This small router is temporary until the app uses a full routing library.
+// SPA navigation: pushState changes the URL without a page reload,
+// then a synthetic popstate event triggers the route-change listener below.
 function navigateTo(path) {
   const targetPath = normalizePath(path);
 
@@ -109,19 +118,32 @@ function navigateTo(path) {
   }
 }
 
+// ── Main App Component ────────────────────────────────────────────────
+// Manages: routing, auth state, session restore, modals, and reservation flow.
 export default function App() {
+  // Current URL path — drives which page component renders.
   const [currentPath, setCurrentPath] = useState(() => normalizePath(window.location.pathname));
+  // Which auth modal is open: 'login', 'register', or null.
   const [activeAuthModal, setActiveAuthModal] = useState(null);
+  // Logged-in user object (or null). Set after login/register/session restore.
   const [currentUser, setCurrentUser] = useState(null);
+  // True while checking localStorage for a saved token on mount.
+  // Prevents a flash of "login required" before the check completes.
   const [isRestoringSession, setIsRestoringSession] = useState(true);
   const [lastPromptedProtectedPath, setLastPromptedProtectedPath] = useState(null);
   const [authModalMessage, setAuthModalMessage] = useState('');
+  // Active reservation: the workspace the user is currently booking.
   const [activeReservationSelection, setActiveReservationSelection] = useState(null);
+  // Pending reservation: saved when an unauthenticated user tries to book.
+  // Resumed automatically after successful login.
   const [pendingReservationSelection, setPendingReservationSelection] = useState(null);
+  // Tracks an in-progress action that failed due to session expiry (for retry after re-login).
   const [pendingInlineProtectedAction, setPendingInlineProtectedAction] = useState(null);
   const isInlineProtectedActionRecovery =
     currentPath === pendingInlineProtectedAction?.path && Boolean(pendingInlineProtectedAction);
 
+  // ── Route change listener ──
+  // Updates React state when the URL changes (browser back/forward or navigateTo).
   useEffect(() => {
     const handleRouteChange = () => {
       setCurrentPath(normalizePath(window.location.pathname));
@@ -132,8 +154,10 @@ export default function App() {
     return () => window.removeEventListener('popstate', handleRouteChange);
   }, []);
 
+  // ── Link interception ──
+  // Clicks on <a data-link> elements are caught here to prevent full-page reloads.
+  // Modifier keys (Ctrl/Cmd+click) are respected for "open in new tab".
   useEffect(() => {
-    // Intercept in-app links so the browser stays inside the single-page app.
     const handleDocumentClick = (event) => {
       const link = event.target.closest('a[data-link]');
 
@@ -156,6 +180,9 @@ export default function App() {
     return () => document.removeEventListener('click', handleDocumentClick);
   }, []);
 
+  // ── Reservation event bus ──
+  // Workspace cards dispatch a custom DOM event to request a reservation.
+  // This decouples the card components from the modal — they don't need to share state.
   useEffect(() => {
     function handleReservationRequest(event) {
       const selection = event.detail;
@@ -185,6 +212,9 @@ export default function App() {
     return () => window.removeEventListener(RESERVATION_REQUEST_EVENT, handleReservationRequest);
   }, [currentUser, isRestoringSession]);
 
+  // ── Flush pending reservation after session restore ──
+  // If a reservation was requested while the session was still loading,
+  // this effect either opens the modal (if logged in) or prompts login.
   useEffect(() => {
     if (isRestoringSession || !pendingReservationSelection) {
       return;
@@ -201,6 +231,9 @@ export default function App() {
     setActiveAuthModal('login');
   }, [currentUser, isRestoringSession, pendingReservationSelection]);
 
+  // ── Session restoration ──
+  // On mount, check localStorage for a saved JWT and validate it via GET /api/auth/me.
+  // If expired or invalid, clear the token. isRestoringSession prevents premature redirects.
   useEffect(() => {
     async function restoreSession() {
       const savedToken = localStorage.getItem(TOKEN_STORAGE_KEY);
@@ -227,6 +260,9 @@ export default function App() {
     restoreSession();
   }, []);
 
+  // ── Protected route guard ──
+  // Opens the login modal when an unauthenticated user navigates to a protected path.
+  // lastPromptedProtectedPath prevents the modal from re-triggering on every render.
   useEffect(() => {
     const protectedPath = isProtectedPath(currentPath);
 
@@ -269,18 +305,24 @@ export default function App() {
     setActiveAuthModal(null);
   }
 
+  // Called after successful login or registration.
+  // Saves the token, sets user state, and resumes any pending reservation.
   function handleAuthSuccess(user, token) {
     localStorage.setItem(TOKEN_STORAGE_KEY, token);
     setCurrentUser(user);
     setActiveAuthModal(null);
     setAuthModalMessage('');
 
+    // Resume a reservation that was interrupted by a login prompt.
     if (pendingReservationSelection) {
       setActiveReservationSelection(pendingReservationSelection);
       setPendingReservationSelection(null);
     }
   }
 
+  // Session expiry recovery: if a protected action (e.g. creating a reservation) fails
+  // with 401, clear auth state, store the action for retry, and re-open the login modal.
+  // Retry is limited to once (retryCount) to prevent infinite loops.
   function handleInlineProtectedActionSessionExpired(nextAction) {
     if (!nextAction?.type) {
       return;
@@ -315,6 +357,9 @@ export default function App() {
     closeAuthModal();
   }
 
+  // ── Protected route rendering ──
+  // Three states: (1) still checking session → loader, (2) not logged in → fallback + modal,
+  // (3) logged in but not admin on /admin → access denied.
   let activeRoute = getCurrentRoute(currentPath);
   let pageMessage = '';
 
@@ -340,6 +385,9 @@ export default function App() {
 
   const PageComponent = activeRoute.component;
 
+  // ── Render ──
+  // AppLayout wraps every page. Auth and reservation modals render at the top level
+  // so they overlay any page and share a single state flow.
   return (
     <>
       <AppLayout
@@ -361,7 +409,7 @@ export default function App() {
         />
       </AppLayout>
 
-      {/* One shared state keeps the auth modal flow easy to follow. */}
+      {/* Auth modals: one shared state controls which is open (login/register/none). */}
       <LoginModal
         isOpen={activeAuthModal === 'login'}
         onClose={closeAuthModal}

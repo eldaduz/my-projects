@@ -297,8 +297,9 @@
 .placeholder-copy,
 .info-copy {
   margin: 0;
-  color: var(--color-text-muted);
+  color: var(--color-heading);
   line-height: 1.8;
+  font-weight: 600;
 }
 
 .hero-actions {
@@ -1340,7 +1341,7 @@
 }
 
 .location-hero-secondary-copy {
-  color: #2f4e45;
+  color: #19322d;
   font-weight: 500;
   line-height: 1.7;
 }

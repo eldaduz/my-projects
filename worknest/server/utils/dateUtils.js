@@ -1,3 +1,4 @@
+// Strict YYYY-MM-DD parser. Returns null for invalid/partial/non-string input.
 export const parseDateOnly = (value) => {
   if (typeof value !== 'string') {
     return null;
@@ -10,6 +11,8 @@ export const parseDateOnly = (value) => {
     return null;
   }
 
+  // Build a local-midnight Date, then verify the result matches the input.
+  // This catches invalid dates like Feb 30 — JS silently rolls them to March.
   const [year, month, day] = trimmedValue.split('-').map(Number);
   const date = new Date(year, month - 1, day);
   date.setHours(0, 0, 0, 0);
@@ -27,6 +30,7 @@ export const getTodayStart = () => {
   return today;
 };
 
+// Exclusive end date (checkout model): Jan 1 → Jan 3 = 2 days, not 3.
 export const getReservedDaysExclusive = (startDate, endDate) => {
   const millisecondsPerDay = 24 * 60 * 60 * 1000;
   return Math.round((endDate.getTime() - startDate.getTime()) / millisecondsPerDay);

@@ -13,7 +13,7 @@ function renderRating(rating) {
   return `${'★'.repeat(rating)} ${rating}/5`;
 }
 
-export default function AdminBranchCard({ branch, onEdit, onDeactivate, isDeactivating }) {
+export default function AdminBranchCard({ branch, onEdit, onToggleActive, isSavingStatus }) {
   return (
     <article className="data-card admin-branch-card">
       <div className="card-content admin-branch-card-content">
@@ -63,10 +63,16 @@ export default function AdminBranchCard({ branch, onEdit, onDeactivate, isDeacti
           <button
             type="button"
             className="button-link"
-            onClick={() => onDeactivate(branch)}
-            disabled={isDeactivating}
+            onClick={() => onToggleActive(branch)}
+            disabled={isSavingStatus}
           >
-            {isDeactivating ? 'משבית...' : 'השבתת מיקום'}
+            {isSavingStatus
+              ? branch.isActive
+                ? 'משבית...'
+                : 'משחזר...'
+              : branch.isActive
+                ? 'השבתת מיקום'
+                : 'שחזור מיקום'}
           </button>
         </div>
       </div>

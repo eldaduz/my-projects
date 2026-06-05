@@ -1,5 +1,8 @@
+// API base URL from Vite env, with a localhost fallback for development.
 export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3005/api';
 
+// Single HTTP abstraction for every API call.
+// Handles: method, JSON body, optional Bearer token, and error normalization.
 export async function apiRequest(endpoint, options = {}) {
   const { method = 'GET', body, token } = options;
 
@@ -22,7 +25,8 @@ export async function apiRequest(endpoint, options = {}) {
     body: body !== undefined ? JSON.stringify(body) : undefined,
   });
 
-  // The backend returns JSON for both success and error cases.
+  // The backend always returns JSON, even for errors.
+  // We convert non-OK responses into thrown Error objects with the server's message.
   const responseData = await response.json();
 
   if (!response.ok) {

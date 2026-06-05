@@ -5,6 +5,7 @@ import EmptyState from '../components/ui/EmptyState.jsx';
 import ErrorMessage from '../components/ui/ErrorMessage.jsx';
 import LoadingState from '../components/ui/LoadingState.jsx';
 
+// Static data for the hero carousel. Rotates automatically every 5 seconds.
 const heroSlides = [
   {
     imageUrl: '/images/hero/worknest-hero-tel-aviv.webp',
@@ -75,6 +76,7 @@ export default function HomePage() {
   const [workspaceTypeFilter, setWorkspaceTypeFilter] = useState('');
   const [failedImageUrls, setFailedImageUrls] = useState({});
 
+  // Standard React data-fetching pattern: state for data/loading/error + useEffect with async.
   useEffect(() => {
     async function loadBranches() {
       try {
@@ -90,6 +92,7 @@ export default function HomePage() {
     loadBranches();
   }, []);
 
+  // Auto-advance the carousel. The cleanup function prevents a memory leak on unmount.
   useEffect(() => {
     const intervalId = window.setInterval(() => {
       setActiveSlideIndex((currentIndex) =>
@@ -115,6 +118,8 @@ export default function HomePage() {
     );
   }
 
+  // The search form doesn't call the API directly — it builds a URL and navigates.
+  // The target page (LocationDetailsPage) reads the query params to filter workspaces.
   function handleSearchSubmit(event) {
     event.preventDefault();
 

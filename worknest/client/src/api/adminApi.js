@@ -1,5 +1,30 @@
 import { apiRequest } from './apiClient.js';
 
+export function getBranchesForAdmin(token, filters = {}) {
+  const searchParams = new URLSearchParams();
+
+  if (filters.search) {
+    searchParams.set('search', filters.search);
+  }
+
+  if (filters.city) {
+    searchParams.set('city', filters.city);
+  }
+
+  if (filters.rating) {
+    searchParams.set('rating', filters.rating);
+  }
+
+  if (filters.includeInactive) {
+    searchParams.set('includeInactive', 'true');
+  }
+
+  const queryString = searchParams.toString();
+  const endpoint = queryString ? `/branches/admin/all?${queryString}` : '/branches/admin/all';
+
+  return apiRequest(endpoint, { token });
+}
+
 export function createBranch(branchData, token) {
   return apiRequest('/branches', {
     method: 'POST',
