@@ -1903,3 +1903,16 @@
     grid-template-columns: repeat(5, minmax(0, 1fr));
   }
 }
+
+.floating-search-card,
+.location-hero-overlay {
+  -webkit-backdrop-filter: blur(18px);
+  backdrop-filter: blur(18px);
+}
+
+@supports (backdrop-filter: blur(1px)) {
+  .floating-search-card,
+  .location-hero-overlay {
+    backdrop-filter: blur(18px);
+  }
+}
