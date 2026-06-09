@@ -10,7 +10,6 @@
   --app-shell-width: 1680px;
   --page-content-width: 1520px;
   --wide-home-width: 1680px;
-  --worknest-glass-filter: blur(18px) saturate(132%);
 }
 
 .app-shell {
@@ -190,8 +189,8 @@
   border-radius: 1.5rem;
   background: rgba(255, 255, 255, 0.42);
   box-shadow: 0 18px 32px rgba(20, 35, 31, 0.08);
-  backdrop-filter: var(--worknest-glass-filter);
-  -webkit-backdrop-filter: var(--worknest-glass-filter);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
 }
 
 .floating-search-copy {
@@ -1344,8 +1343,8 @@
   border-radius: 1.5rem;
   background: rgba(255, 255, 255, 0.4);
   box-shadow: 0 18px 32px rgba(20, 35, 31, 0.08);
-  backdrop-filter: var(--worknest-glass-filter);
-  -webkit-backdrop-filter: var(--worknest-glass-filter);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
 }
 
 .location-hero-title {
