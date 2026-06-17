@@ -1,6 +1,6 @@
-import { describe, it, expect } from 'vitest'
-import { render, screen } from '@testing-library/react'
-import GamificationHUD from './GamificationHUD'
+import { describe, it, expect } from 'vitest';
+import { render, screen } from '@testing-library/react';
+import GamificationHUD from './GamificationHUD';
 
 describe('GamificationHUD', () => {
   it('renders level, rank, xp values, and streak', () => {
@@ -12,13 +12,13 @@ describe('GamificationHUD', () => {
         streak={7}
         rankTitle="Dungeon Raider"
       />,
-    )
+    );
 
-    expect(screen.getByText(/Level 4/i)).toBeInTheDocument()
-    expect(screen.getByText('Dungeon Raider')).toBeInTheDocument()
-    expect(screen.getByText('120 / 400 XP')).toBeInTheDocument()
-    expect(screen.getByText('7 Day Streak')).toBeInTheDocument()
-  })
+    expect(screen.getByText(/Level 4/i)).toBeInTheDocument();
+    expect(screen.getByText('Dungeon Raider')).toBeInTheDocument();
+    expect(screen.getByText('120 / 400 XP')).toBeInTheDocument();
+    expect(screen.getByText('7 Day Streak')).toBeInTheDocument();
+  });
 
   it('caps xp bar width at 100 percent', () => {
     const { container } = render(
@@ -29,9 +29,9 @@ describe('GamificationHUD', () => {
         streak={0}
         rankTitle="Scroll Apprentice"
       />,
-    )
+    );
 
-    const barFill = container.querySelector('div[style]')
-    expect(barFill).toHaveStyle({ width: '100%' })
-  })
-})
+    const barFill = container.querySelector('div[style]');
+    expect(barFill).toHaveStyle({ width: '100%' });
+  });
+});

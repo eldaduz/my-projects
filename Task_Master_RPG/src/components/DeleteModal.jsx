@@ -6,11 +6,11 @@
 // Clicking the dark backdrop also cancels.
 // ──────────────────────────────────────────────
 
-import { X } from 'lucide-react'
+import { X } from 'lucide-react';
 
 export default function DeleteModal({ isOpen, taskTitle, onConfirm, onCancel }) {
   // If the modal is closed, render nothing at all.
-  if (!isOpen) return null
+  if (!isOpen) return null;
 
   return (
     // Dark backdrop — clicking it cancels the deletion.
@@ -51,5 +51,5 @@ export default function DeleteModal({ isOpen, taskTitle, onConfirm, onCancel }) 
         </div>
       </div>
     </div>
-  )
+  );
 }

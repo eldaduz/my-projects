@@ -8,14 +8,14 @@
 
 export function formatDate(rawDate) {
   if (!rawDate) {
-    return ''
+    return '';
   }
 
-  const parts = String(rawDate).split('-')
+  const parts = String(rawDate).split('-');
   if (parts.length !== 3) {
-    return rawDate
+    return rawDate;
   }
 
-  const [year, month, day] = parts
-  return `${day}/${month}/${year}`
+  const [year, month, day] = parts;
+  return `${day}/${month}/${year}`;
 }

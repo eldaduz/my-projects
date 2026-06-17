@@ -6,10 +6,10 @@
 // Props are passed down from App → TaskCard.
 // ──────────────────────────────────────────────
 
-import { useState } from 'react'
-import { Calendar, Pencil, Trash2, Check } from 'lucide-react'
-import { formatDate } from '../utils/FormatDate.js'
-import { XP_VALUES } from '../constants/gameConfig'
+import { useState } from 'react';
+import { Calendar, Pencil, Trash2, Check } from 'lucide-react';
+import { formatDate } from '../utils/FormatDate.js';
+import { XP_VALUES } from '../constants/gameConfig';
 
 export default function TaskCard({
   task,
@@ -19,35 +19,35 @@ export default function TaskCard({
   isEditing,
   onSaveTask,
 }) {
-  const { title, priority, date } = task
+  const { title, priority, date } = task;
 
   // Tailwind class sets for each priority level.
   const priorityStyles = {
     High: 'bg-priority-high-bg text-priority-high border-priority-high',
     Medium: 'bg-priority-medium-bg text-priority-medium border-priority-medium',
     Low: 'bg-priority-low-bg text-priority-low border-priority-low',
-  }
+  };
 
   // Check if the quest's due date is before today.
   // We compare date-only strings ("YYYY-MM-DD") to avoid
   // timezone issues between UTC and local time.
   function isTaskOverdue() {
-    if (!date || task.completed) return false
+    if (!date || task.completed) return false;
 
-    const todayLocal = new Date()
+    const todayLocal = new Date();
     const todayStr = [
       todayLocal.getFullYear(),
       String(todayLocal.getMonth() + 1).padStart(2, '0'),
       String(todayLocal.getDate()).padStart(2, '0'),
-    ].join('-')
+    ].join('-');
 
-    return date < todayStr
+    return date < todayStr;
   }
 
-  const isOverdue = isTaskOverdue()
+  const isOverdue = isTaskOverdue();
 
   // Local state for the inline title editor.
-  const [editedTitle, setEditedTitle] = useState(title)
+  const [editedTitle, setEditedTitle] = useState(title);
 
   return (
     <div
@@ -152,5 +152,5 @@ export default function TaskCard({
         </div>
       </div>
     </div>
-  )
+  );
 }

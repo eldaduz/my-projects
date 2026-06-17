@@ -6,11 +6,11 @@
 // passed by the App component.
 // ──────────────────────────────────────────────
 
-import { Flame, User } from 'lucide-react'
+import { Flame, User } from 'lucide-react';
 
 export default function GamificationHUD({ level, currentXP, maxXP, streak = 0, rankTitle }) {
   // Calculate how full the XP bar should be (0–100%).
-  const xpPercentage = Math.min(100, (currentXP / maxXP) * 100)
+  const xpPercentage = Math.min(100, (currentXP / maxXP) * 100);
 
   return (
     <div className="bg-surface-2 border border-border-stroke rounded-[16px] p-4 mb-6 shadow-lg">
@@ -53,5 +53,5 @@ export default function GamificationHUD({ level, currentXP, maxXP, streak = 0, r
         </div>
       </div>
     </div>
-  )
+  );
 }

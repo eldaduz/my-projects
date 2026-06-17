@@ -19,5 +19,5 @@ export default function SearchInput({ value, onChange }) {
         onChange={onChange}
       />
     </div>
-  )
+  );
 }

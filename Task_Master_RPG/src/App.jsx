@@ -12,29 +12,29 @@
 // This keeps App short and focused on the UI layout.
 // ──────────────────────────────────────────────
 
-import { useState, useEffect, useCallback } from 'react'
-import { SpeedInsights } from '@vercel/speed-insights/react'
-import { Analytics } from '@vercel/analytics/react'
-import { ChevronDown } from 'lucide-react'
-import FilterPill from './components/FilterPill'
-import SearchInput from './components/SearchInput'
-import QuestInput from './components/QuestInput'
-import TaskCard from './components/TaskCard'
-import DeleteModal from './components/DeleteModal'
-import GamificationHUD from './components/GamificationHUD'
-import ToastNotification from './components/ToastNotification'
-import EmptyState from './components/EmptyState'
-import useTaskManager from './hooks/useTaskManager'
-import { XP_VALUES, RANK_TITLES, DEFAULT_USER_DATA, APP_TIMEZONE } from './constants/gameConfig'
+import { useState, useEffect, useCallback } from 'react';
+import { SpeedInsights } from '@vercel/speed-insights/react';
+import { Analytics } from '@vercel/analytics/react';
+import { ChevronDown } from 'lucide-react';
+import FilterPill from './components/FilterPill';
+import SearchInput from './components/SearchInput';
+import QuestInput from './components/QuestInput';
+import TaskCard from './components/TaskCard';
+import DeleteModal from './components/DeleteModal';
+import GamificationHUD from './components/GamificationHUD';
+import ToastNotification from './components/ToastNotification';
+import EmptyState from './components/EmptyState';
+import useTaskManager from './hooks/useTaskManager';
+import { XP_VALUES, RANK_TITLES, DEFAULT_USER_DATA, APP_TIMEZONE } from './constants/gameConfig';
 
 // Load user progress from localStorage when the app starts.
 // If the saved data is missing or broken, return default values.
 function loadUserData() {
   try {
-    const savedUser = localStorage.getItem('userData')
-    return savedUser ? JSON.parse(savedUser) : DEFAULT_USER_DATA
+    const savedUser = localStorage.getItem('userData');
+    return savedUser ? JSON.parse(savedUser) : DEFAULT_USER_DATA;
   } catch {
-    return DEFAULT_USER_DATA
+    return DEFAULT_USER_DATA;
   }
 }
 
@@ -46,87 +46,87 @@ export default function App() {
   const [toast, setToast] = useState({
     message: 'You have successfully promoted to the next rank',
     show: false,
-  })
+  });
 
   // useCallback keeps a stable function reference.
   // We pass these to child components, so a stable reference
   // prevents unnecessary re-renders.
   const showToast = useCallback((message) => {
-    setToast({ message, show: true })
-  }, [])
+    setToast({ message, show: true });
+  }, []);
 
   const closeToast = useCallback(() => {
-    setToast((prev) => ({ ...prev, show: false }))
-  }, [])
+    setToast((prev) => ({ ...prev, show: false }));
+  }, []);
 
   // ── User Progress State ───────────────────────
   // Tracks level, XP, streak, and last active date.
-  const [userData, setUserData] = useState(loadUserData)
+  const [userData, setUserData] = useState(loadUserData);
 
   // Called every time a quest is completed or un-completed.
   // Decides how much XP to add/remove, whether to level up/down,
   // and whether the daily streak should increase.
   const handleTaskCompletionChange = useCallback(
     (task, willComplete) => {
-      const xpValue = XP_VALUES[task.priority] ?? 0
-      const xpDelta = willComplete ? xpValue : -xpValue
+      const xpValue = XP_VALUES[task.priority] ?? 0;
+      const xpDelta = willComplete ? xpValue : -xpValue;
 
       setUserData((prevUser) => {
-        let newXP = prevUser.currentXP + xpDelta
-        let newLevel = prevUser.level
-        let newMaxXP = prevUser.maxXP
-        let newLastActiveDate = prevUser.lastActiveDate
-        let newStreak = prevUser.streak
+        let newXP = prevUser.currentXP + xpDelta;
+        let newLevel = prevUser.level;
+        let newMaxXP = prevUser.maxXP;
+        let newLastActiveDate = prevUser.lastActiveDate;
+        let newStreak = prevUser.streak;
 
         // ── Level Up ──
         if (newXP >= newMaxXP) {
-          const newRankTitle = RANK_TITLES[Math.min(newLevel, RANK_TITLES.length - 1)]
-          newXP -= newMaxXP
-          newLevel += 1
-          newMaxXP = newLevel * 100
+          const newRankTitle = RANK_TITLES[Math.min(newLevel, RANK_TITLES.length - 1)];
+          newXP -= newMaxXP;
+          newLevel += 1;
+          newMaxXP = newLevel * 100;
 
           // Try to play the level-up sound.
           // Some browsers block auto-play, so we catch the error.
           try {
-            const maybePromise = new Audio('/levelup.mp3').play()
+            const maybePromise = new Audio('/levelup.mp3').play();
             if (maybePromise && typeof maybePromise.catch === 'function') {
               maybePromise.catch(() => {
-                console.warn('Level-up sound playback was blocked by the browser.')
-              })
+                console.warn('Level-up sound playback was blocked by the browser.');
+              });
             }
           } catch {
-            console.warn('Failed to play level-up sound.')
+            console.warn('Failed to play level-up sound.');
           }
 
-          showToast(`You are now a ${newRankTitle}!`)
+          showToast(`You are now a ${newRankTitle}!`);
 
           // ── Level Down (XP went negative) ──
         } else if (newXP < 0) {
           if (newLevel > 1) {
-            newLevel -= 1
-            newMaxXP = newLevel * 100
-            newXP = newMaxXP + newXP
+            newLevel -= 1;
+            newMaxXP = newLevel * 100;
+            newXP = newMaxXP + newXP;
           } else {
-            newXP = 0
+            newXP = 0;
           }
         }
 
         // ── Streak Logic ──
         // Only count streak when completing a quest (not un-completing).
         if (xpDelta > 0) {
-          const options = { timeZone: APP_TIMEZONE }
-          const today = new Date().toLocaleDateString('he-IL', options)
-          const yesterdayObj = new Date()
-          yesterdayObj.setDate(yesterdayObj.getDate() - 1)
-          const yesterday = yesterdayObj.toLocaleDateString('he-IL', options)
+          const options = { timeZone: APP_TIMEZONE };
+          const today = new Date().toLocaleDateString('he-IL', options);
+          const yesterdayObj = new Date();
+          yesterdayObj.setDate(yesterdayObj.getDate() - 1);
+          const yesterday = yesterdayObj.toLocaleDateString('he-IL', options);
 
           if (prevUser.lastActiveDate === yesterday) {
-            newStreak += 1 // consecutive day → streak grows
+            newStreak += 1; // consecutive day → streak grows
           } else if (prevUser.lastActiveDate !== today) {
-            newStreak = 1 // streak broken → reset to 1
+            newStreak = 1; // streak broken → reset to 1
           }
 
-          newLastActiveDate = today
+          newLastActiveDate = today;
         }
 
         return {
@@ -136,11 +136,11 @@ export default function App() {
           maxXP: newMaxXP,
           streak: newStreak,
           lastActiveDate: newLastActiveDate,
-        }
-      })
+        };
+      });
     },
     [showToast],
-  )
+  );
 
   // ── Custom Hook ───────────────────────────────
   // useTaskManager returns all the task data and actions
@@ -169,20 +169,20 @@ export default function App() {
   } = useTaskManager({
     onTaskCompletionChange: handleTaskCompletionChange,
     showToast,
-  })
+  });
 
   // ── Side Effect: persist user progress ────────
   // Every time userData changes, save it to localStorage.
   useEffect(() => {
     try {
-      localStorage.setItem('userData', JSON.stringify(userData))
+      localStorage.setItem('userData', JSON.stringify(userData));
     } catch {
-      console.warn('Failed to save userData to localStorage.')
+      console.warn('Failed to save userData to localStorage.');
     }
-  }, [userData])
+  }, [userData]);
 
   // Pick the correct rank title for the current level.
-  const currentRank = RANK_TITLES[Math.min(userData.level - 1, RANK_TITLES.length - 1)]
+  const currentRank = RANK_TITLES[Math.min(userData.level - 1, RANK_TITLES.length - 1)];
 
   // ── JSX (UI Layout) ──────────────────────────
   return (
@@ -287,5 +287,5 @@ export default function App() {
       <SpeedInsights />
       <Analytics />
     </div>
-  )
+  );
 }

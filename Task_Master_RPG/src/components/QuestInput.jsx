@@ -7,47 +7,47 @@
 // the fields reset to their defaults.
 // ──────────────────────────────────────────────
 
-import { useState } from 'react'
-import { ChevronDown } from 'lucide-react'
-import DatePicker from 'react-datepicker'
-import 'react-datepicker/dist/react-datepicker.css'
+import { useState } from 'react';
+import { ChevronDown } from 'lucide-react';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
 
 export default function QuestInput({ onAddQuest }) {
   // Each field has its own state managed by useState.
-  const [questTitle, setQuestTitle] = useState('')
-  const [priority, setPriority] = useState('Medium')
-  const [dueDate, setDueDate] = useState('')
-  const [errors, setErrors] = useState({ title: false, dueDate: false })
+  const [questTitle, setQuestTitle] = useState('');
+  const [priority, setPriority] = useState('Medium');
+  const [dueDate, setDueDate] = useState('');
+  const [errors, setErrors] = useState({ title: false, dueDate: false });
 
   // Convert a Date object into the "YYYY-MM-DD" format we store.
   function toStorageDate(date) {
-    const year = date.getFullYear()
-    const month = String(date.getMonth() + 1).padStart(2, '0')
-    const day = String(date.getDate()).padStart(2, '0')
-    return `${year}-${month}-${day}`
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   }
 
   // Reconstruct a Date object for the DatePicker.
-  const selectedDueDate = dueDate ? new Date(`${dueDate}T00:00:00`) : null
+  const selectedDueDate = dueDate ? new Date(`${dueDate}T00:00:00`) : null;
 
   // Validate and submit the form.
   function handleAdd() {
-    const titleMissing = !questTitle.trim()
-    const dueDateMissing = !dueDate.trim()
+    const titleMissing = !questTitle.trim();
+    const dueDateMissing = !dueDate.trim();
 
     if (titleMissing || dueDateMissing) {
-      setErrors({ title: titleMissing, dueDate: dueDateMissing })
-      return
+      setErrors({ title: titleMissing, dueDate: dueDateMissing });
+      return;
     }
 
     // Call the parent's handler (App → useTaskManager → addTask).
-    onAddQuest({ title: questTitle, priority, date: dueDate })
+    onAddQuest({ title: questTitle, priority, date: dueDate });
 
     // Reset all fields for the next quest.
-    setQuestTitle('')
-    setPriority('Medium')
-    setDueDate('')
-    setErrors({ title: false, dueDate: false })
+    setQuestTitle('');
+    setPriority('Medium');
+    setDueDate('');
+    setErrors({ title: false, dueDate: false });
   }
 
   return (
@@ -61,13 +61,13 @@ export default function QuestInput({ onAddQuest }) {
           placeholder="What is your next quest? 🧙"
           value={questTitle}
           onChange={(e) => {
-            setQuestTitle(e.target.value)
+            setQuestTitle(e.target.value);
             if (errors.title) {
-              setErrors((prev) => ({ ...prev, title: false }))
+              setErrors((prev) => ({ ...prev, title: false }));
             }
           }}
           onKeyDown={(e) => {
-            if (e.key === 'Enter') handleAdd()
+            if (e.key === 'Enter') handleAdd();
           }}
         />
 
@@ -93,12 +93,12 @@ export default function QuestInput({ onAddQuest }) {
           minDate={new Date()}
           onChange={(selectedDate) => {
             if (!selectedDate) {
-              setDueDate('')
-              return
+              setDueDate('');
+              return;
             }
-            setDueDate(toStorageDate(selectedDate))
+            setDueDate(toStorageDate(selectedDate));
             if (errors.dueDate) {
-              setErrors((prev) => ({ ...prev, dueDate: false }))
+              setErrors((prev) => ({ ...prev, dueDate: false }));
             }
           }}
           dateFormat="dd/MM/yyyy"
@@ -122,5 +122,5 @@ export default function QuestInput({ onAddQuest }) {
         </span>
       )}
     </div>
-  )
+  );
 }

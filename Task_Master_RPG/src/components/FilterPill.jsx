@@ -14,5 +14,5 @@ export default function FilterPill({ label, isActive, onClick }) {
     >
       {label}
     </button>
-  )
+  );
 }

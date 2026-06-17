@@ -7,7 +7,7 @@
 // after 2 seconds using useEffect + setTimeout.
 // ──────────────────────────────────────────────
 
-import { useEffect } from 'react'
+import { useEffect } from 'react';
 
 export default function ToastNotification({ message, isVisible, onClose }) {
   // When the toast becomes visible, start a 2-second timer.
@@ -15,17 +15,17 @@ export default function ToastNotification({ message, isVisible, onClose }) {
   // unmounts or if isVisible changes before the timer fires.
   useEffect(() => {
     if (isVisible) {
-      const timer = setTimeout(onClose, 2000)
-      return () => clearTimeout(timer)
+      const timer = setTimeout(onClose, 2000);
+      return () => clearTimeout(timer);
     }
-  }, [isVisible, onClose])
+  }, [isVisible, onClose]);
 
   // If not visible, render nothing.
-  if (!isVisible) return null
+  if (!isVisible) return null;
 
   return (
     <div className="fixed top-4 p-4 left-1/2 -translate-x-1/2 z-50 bg-app-background rounded-xl border shadow-lg text-purple-accent">
       <p>{message}</p>
     </div>
-  )
+  );
 }

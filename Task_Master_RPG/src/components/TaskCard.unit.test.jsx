@@ -1,7 +1,7 @@
-import { describe, it, expect, vi } from 'vitest'
-import { render, screen, fireEvent } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
-import TaskCard from './TaskCard'
+import { describe, it, expect, vi } from 'vitest';
+import { render, screen, fireEvent } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import TaskCard from './TaskCard';
 
 function baseTask(overrides = {}) {
   return {
@@ -11,7 +11,7 @@ function baseTask(overrides = {}) {
     date: '2027-12-31',
     completed: false,
     ...overrides,
-  }
+  };
 }
 
 describe('TaskCard', () => {
@@ -25,17 +25,17 @@ describe('TaskCard', () => {
         isEditing={false}
         onSaveTask={vi.fn()}
       />,
-    )
+    );
 
-    expect(screen.getByText('Defeat the Bug')).toBeInTheDocument()
-    expect(screen.getByText('High')).toBeInTheDocument()
-    expect(screen.getByText('08/10/2027')).toBeInTheDocument()
-    expect(screen.getByText('+100 XP')).toBeInTheDocument()
-  })
+    expect(screen.getByText('Defeat the Bug')).toBeInTheDocument();
+    expect(screen.getByText('High')).toBeInTheDocument();
+    expect(screen.getByText('08/10/2027')).toBeInTheDocument();
+    expect(screen.getByText('+100 XP')).toBeInTheDocument();
+  });
 
   it('calls onToggleComplete with task id', async () => {
-    const user = userEvent.setup()
-    const onToggleComplete = vi.fn()
+    const user = userEvent.setup();
+    const onToggleComplete = vi.fn();
     render(
       <TaskCard
         task={baseTask()}
@@ -45,16 +45,16 @@ describe('TaskCard', () => {
         isEditing={false}
         onSaveTask={vi.fn()}
       />,
-    )
+    );
 
-    await user.click(screen.getByTestId('complete-checkbox'))
-    expect(onToggleComplete).toHaveBeenCalledWith('task-1')
-  })
+    await user.click(screen.getByTestId('complete-checkbox'));
+    expect(onToggleComplete).toHaveBeenCalledWith('task-1');
+  });
 
   it('calls onEditTask and onDeleteTask with task id', async () => {
-    const user = userEvent.setup()
-    const onEditTask = vi.fn()
-    const onDeleteTask = vi.fn()
+    const user = userEvent.setup();
+    const onEditTask = vi.fn();
+    const onDeleteTask = vi.fn();
     render(
       <TaskCard
         task={baseTask()}
@@ -64,18 +64,18 @@ describe('TaskCard', () => {
         isEditing={false}
         onSaveTask={vi.fn()}
       />,
-    )
+    );
 
-    const buttons = screen.getAllByRole('button')
-    await user.click(buttons[1])
-    await user.click(screen.getByTestId('delete-button'))
+    const buttons = screen.getAllByRole('button');
+    await user.click(buttons[1]);
+    await user.click(screen.getByTestId('delete-button'));
 
-    expect(onEditTask).toHaveBeenCalledWith('task-1')
-    expect(onDeleteTask).toHaveBeenCalledWith('task-1')
-  })
+    expect(onEditTask).toHaveBeenCalledWith('task-1');
+    expect(onDeleteTask).toHaveBeenCalledWith('task-1');
+  });
 
   it('saves edited title when Enter is pressed', () => {
-    const onSaveTask = vi.fn()
+    const onSaveTask = vi.fn();
     render(
       <TaskCard
         task={baseTask()}
@@ -85,14 +85,14 @@ describe('TaskCard', () => {
         isEditing={true}
         onSaveTask={onSaveTask}
       />,
-    )
+    );
 
-    const input = screen.getByDisplayValue('Defeat the Bug')
-    fireEvent.change(input, { target: { value: 'Defeat the Production Bug' } })
-    fireEvent.keyDown(input, { key: 'Enter' })
+    const input = screen.getByDisplayValue('Defeat the Bug');
+    fireEvent.change(input, { target: { value: 'Defeat the Production Bug' } });
+    fireEvent.keyDown(input, { key: 'Enter' });
 
-    expect(onSaveTask).toHaveBeenCalledWith('task-1', 'Defeat the Production Bug')
-  })
+    expect(onSaveTask).toHaveBeenCalledWith('task-1', 'Defeat the Production Bug');
+  });
 
   it('marks overdue visual state for past uncompleted task', () => {
     const { container } = render(
@@ -104,8 +104,8 @@ describe('TaskCard', () => {
         isEditing={false}
         onSaveTask={vi.fn()}
       />,
-    )
+    );
 
-    expect(container.firstChild).toHaveClass('border-l-overdue-warning')
-  })
-})
+    expect(container.firstChild).toHaveClass('border-l-overdue-warning');
+  });
+});
