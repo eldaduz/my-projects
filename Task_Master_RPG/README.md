@@ -65,17 +65,7 @@ src/
 - **Icons:** Lucide React
 - **Date Picker:** react-datepicker
 - **Persistence:** localStorage (data saves automatically)
-- **Testing:** Vitest, React Testing Library
 - **Deployment:** Vercel
-
-## 🧪 Testing
-
-Unit and integration tests cover all components and core logic:
-
-```bash
-npm test              # run all tests in watch mode
-npm run test:unit     # run unit tests only
-```
 
 ## 🛠️ Installation
 
