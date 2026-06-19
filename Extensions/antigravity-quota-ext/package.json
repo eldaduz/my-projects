@@ -1,0 +1,143 @@
+{
+  "name": "antigravity-quotas",
+  "displayName": "Antigravity Quotas",
+  "description": "Shows remaining quotas for Antigravity models",
+  "version": "0.0.11",
+  "publisher": "local",
+  "icon": "resources/icons/extension.png",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/eldaduz/VS-Code"
+  },
+  "engines": {
+    "vscode": "^1.80.0"
+  },
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "antigravity-quotas",
+          "title": "Antigravity Quotas",
+          "icon": "$(dashboard)"
+        }
+      ]
+    },
+    "views": {
+      "antigravity-quotas": [
+        {
+          "id": "quota-view",
+          "name": "Model Quotas",
+          "icon": "$(dashboard)"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "quota-view.refreshEntry",
+        "title": "Refresh Quotas",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "quota-view.openFromStatusBar",
+        "title": "Open Quotas Panel"
+      },
+      {
+        "command": "antigravityQuotas.checkForUpdates",
+        "title": "Antigravity Quotas: Check for Updates"
+      },
+      {
+        "command": "antigravityQuotas.configureUpdateToken",
+        "title": "Antigravity Quotas: Configure Update Token"
+      },
+      {
+        "command": "antigravityQuotas.clearUpdateToken",
+        "title": "Antigravity Quotas: Clear Update Token"
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "quota-view.refreshEntry",
+          "when": "view == quota-view",
+          "group": "navigation"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Antigravity Quotas",
+      "properties": {
+        "antigravityQuotas.groupIconStyle": {
+          "type": "string",
+          "default": "color",
+          "enum": [
+            "color",
+            "mono",
+            "auto"
+          ],
+          "enumDescriptions": [
+            "Use color provider icons for Gemini and Claude groups.",
+            "Use monochrome provider icons with light/dark theme pairing.",
+            "Use automatic theme-aware monochrome icons (same mapping as mono)."
+          ],
+          "description": "Icon style used for provider group headers in the quotas panel."
+        },
+        "antigravityQuotas.updates.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable automatic update checks for Antigravity Quotas."
+        },
+        "antigravityQuotas.updates.channel": {
+          "type": "string",
+          "default": "stable",
+          "enum": [
+            "stable"
+          ],
+          "description": "Release channel used by the updater."
+        },
+        "antigravityQuotas.updates.checkIntervalHours": {
+          "type": "number",
+          "default": 12,
+          "minimum": 1,
+          "description": "How often to check for updates in hours."
+        },
+        "antigravityQuotas.updates.githubOwner": {
+          "type": "string",
+          "default": "eldaduz",
+          "description": "GitHub owner for the releases repository."
+        },
+        "antigravityQuotas.updates.githubRepo": {
+          "type": "string",
+          "default": "my-projects",
+          "description": "GitHub repository that publishes the VSIX releases."
+        },
+        "antigravityQuotas.updates.assetPattern": {
+          "type": "string",
+          "default": "antigravity-quotas-*.vsix",
+          "description": "Filename pattern used to pick VSIX assets from releases."
+        }
+      }
+    }
+  },
+  "files": [
+    "out/**",
+    "resources/**",
+    "package.json",
+    "README.md",
+    "LICENSE.txt"
+  ],
+  "scripts": {
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./"
+  },
+  "devDependencies": {
+    "@types/node": "18.x",
+    "@types/vscode": "^1.80.0",
+    "@vscode/vsce": "^2.19.0",
+    "typescript": "^5.1.3"
+  }
+}
