@@ -3,7 +3,7 @@
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "https://REPLACE-WITH-RENDER-SERVICE-URL.onrender.com/api/$1"
+      "destination": "https://ai-trip-planner-vwrq.onrender.com/api/$1"
     },
     {
       "source": "/((?!.*\\.).*)",
