@@ -68,7 +68,7 @@
     box-shadow var(--transition-fast),
     transform var(--transition-fast);
 }
-.btn:hover {
+.btn:not(.btn-primary):hover {
   background: var(--color-surface-alt);
 }
 .btn:active {

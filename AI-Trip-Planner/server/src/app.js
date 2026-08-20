@@ -9,6 +9,7 @@ import { travelersRouter } from './modules/travelers/travelers.routes.js';
 import { createTripsRouter } from './modules/trips/trips.routes.js';
 import { notFoundHandler, errorHandler } from './middleware/errorHandler.js';
 import { requireExpectedOrigin } from './middleware/requireExpectedOrigin.js';
+import { requireProxySecret } from './middleware/requireProxySecret.js';
 
 export function createApp({ geminiAdapter } = {}) {
   const app = express();
@@ -36,10 +37,14 @@ export function createApp({ geminiAdapter } = {}) {
     app.use(morgan(env.nodeEnv === 'production' ? 'combined' : 'dev'));
   }
 
+  // Render's own platform health check hits this service's public URL
+  // directly (never through Vercel), so /api/health must stay reachable
+  // without the proxy secret — it carries no user data and isn't rate-limit
+  // sensitive, so exempting it doesn't reopen the ATP-85 gap.
   app.use('/api/health', healthRouter);
-  app.use('/api/auth', authRouter);
-  app.use('/api/traveler-profiles', travelersRouter);
-  app.use('/api/trips', createTripsRouter({ geminiAdapter }));
+  app.use('/api/auth', requireProxySecret, authRouter);
+  app.use('/api/traveler-profiles', requireProxySecret, travelersRouter);
+  app.use('/api/trips', requireProxySecret, createTripsRouter({ geminiAdapter }));
 
   // This server is API-only (no HTML pages), so a JSON 404 applies to any
   // unmatched route, not just /api/*.

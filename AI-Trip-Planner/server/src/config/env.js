@@ -1,9 +1,15 @@
 import 'dotenv/config';
 
 const REQUIRED_VARS = ['MONGODB_URI', 'JWT_SECRET'];
+// Only load-bearing once deployed — see requireProxySecret.js (ATP-85). Required
+// in production so a missing/misconfigured secret fails startup loudly instead
+// of silently locking out every real Vercel-proxied request.
+const PRODUCTION_REQUIRED_VARS = ['INTERNAL_PROXY_SECRET'];
 
 function readEnv() {
-  const missing = REQUIRED_VARS.filter((key) => !process.env[key]);
+  const required =
+    process.env.NODE_ENV === 'production' ? [...REQUIRED_VARS, ...PRODUCTION_REQUIRED_VARS] : REQUIRED_VARS;
+  const missing = required.filter((key) => !process.env[key]);
   if (missing.length > 0) {
     throw new Error(`Missing required environment variable(s): ${missing.join(', ')}`);
   }
@@ -14,6 +20,12 @@ function readEnv() {
     mongoUri: process.env.MONGODB_URI,
     corsOrigin: process.env.CORS_ORIGIN || 'http://localhost:5173',
     jwtSecret: process.env.JWT_SECRET,
+    // ATP-85: shared secret Vercel Edge Middleware attaches to rewritten /api
+    // requests, so this server can tell a genuine Vercel-proxied request apart
+    // from a direct hit to Render's own public URL (which would otherwise be
+    // one X-Forwarded-For hop short of trust-proxy's assumption, letting an
+    // attacker forge req.ip and evade per-IP rate limiting).
+    internalProxySecret: process.env.INTERNAL_PROXY_SECRET,
     // Gemini is backend-only; the adapter validates the key when a live client is created.
     geminiApiKey: process.env.GEMINI_API_KEY,
     geminiModel: process.env.GEMINI_MODEL || 'gemini-3.5-flash-lite',

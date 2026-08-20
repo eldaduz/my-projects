@@ -85,6 +85,7 @@ Required backend variables:
 - `JWT_SECRET`
 - `GEMINI_API_KEY`
 - `CORS_ORIGIN` — must be the deployed Vercel URL in production
+- `INTERNAL_PROXY_SECRET` — required whenever `NODE_ENV=production` (ATP-85). Must match the same value set as `INTERNAL_PROXY_SECRET` in the Vercel project's environment variables (used by `client/middleware.js`, never exposed to the browser). Any random 32+ byte string works, e.g. `openssl rand -hex 32`.
 
 Optional backend variables (sane defaults in code): `PORT`, `GEMINI_MODEL`, `JSON_BODY_LIMIT`, `AUTH_RATE_LIMIT_MAX`, `AUTH_RATE_LIMIT_WINDOW_MS`, `AI_RATE_LIMIT_MAX`, `AI_RATE_LIMIT_WINDOW_MS`, `AI_RATE_LIMIT_IP_MAX`, `AI_STALE_OPERATION_MS`.
 
@@ -96,6 +97,7 @@ The frontend has no build-time API URL to configure — it always calls the rela
 - **After creating the Render service**, replace the placeholder host in `client/vercel.json`'s rewrite destination with the real `https://<service>.onrender.com` URL, then redeploy the Vercel project.
 - Set `CORS_ORIGIN` on Render to the deployed Vercel URL (not `localhost`) once it's known.
 - `AI_ADAPTER_MODE` (fake AI adapter for testing) is hard-disabled whenever `NODE_ENV=production` — it cannot be enabled in this deployment regardless of env vars.
+- **`client/middleware.js` (ATP-85):** Vercel Edge Middleware that attaches `x-internal-proxy-secret` to every `/api/*` request before `vercel.json`'s rewrite forwards it to Render. The backend rejects `/api/auth`, `/api/traveler-profiles` and `/api/trips` requests in production that don't carry the matching secret — this stops a caller from bypassing per-IP rate limiting by hitting Render's own public URL directly (its `X-Forwarded-For` chain is one hop short of what `trust proxy` expects there). Set the same `INTERNAL_PROXY_SECRET` value in both the Vercel and Render project environment variables. `/api/health` stays open (Render's own health check hits it directly).
 - No Redis, queue, worker, staging environment, or Docker is required for this deployment.
 
 ## API Summary
