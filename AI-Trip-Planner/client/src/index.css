@@ -1,0 +1,133 @@
+/* Design tokens — ported from design/tokens.css. Keep the two in sync. */
+:root {
+  --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-family-display: 'Sora', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --text-xs: 12px;
+  --text-sm: 13px;
+  --text-base: 14px;
+  --text-md: 15.5px;
+  --text-lg: 18px;
+  --text-xl: 22px;
+  --text-2xl: 26px;
+  --text-3xl: 32px;
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --weight-bold: 700;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-16: 64px;
+
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-pill: 999px;
+
+  --color-bg: #faf9f6;
+  --color-surface: #ffffff;
+  --color-surface-alt: #f3f1ec;
+  --color-border: #e3ded2;
+  --color-text: #2a2822;
+  --color-text-muted: #6b6558;
+  --color-text-faint: #8f8a7d;
+
+  --color-primary: #1e6f5c;
+  --color-primary-hover: #14503f;
+  --color-primary-tint: #e1ede8;
+  --color-on-primary: #ffffff;
+
+  --pref-neutral-fg: #2a2822;
+  --pref-neutral-bg: #f3f1ec;
+  --pref-interested-fg: #ffffff;
+  --pref-interested-bg: #1e6f5c;
+  --pref-avoid-fg: #55524a;
+  --pref-avoid-bg: #e7e3d6;
+  --pref-block-fg: #ffffff;
+  --pref-block-bg: #b0242a;
+
+  --status-ready-fg: #1f7a4d;
+  --status-ready-bg: #e5f4ea;
+  --status-ready-border: #bfe3cc;
+
+  --status-stale-fg: #92660c;
+  --status-stale-bg: #faf1dd;
+  --status-stale-border: #f0dcab;
+
+  --status-generating-fg: #2554b3;
+  --status-generating-bg: #e8edfb;
+  --status-generating-border: #c3d1f5;
+
+  --status-block-fg: #b0242a;
+  --status-block-bg: #fbe8e8;
+  --status-block-border: #f2c3c3;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 12px 28px rgba(30, 111, 92, 0.14);
+
+  --gradient-primary: linear-gradient(135deg, #1e6f5c 0%, #16594a 100%);
+  --gradient-tint: linear-gradient(135deg, #eef6f2 0%, #e1ede8 100%);
+
+  --tap-target: 44px;
+  --transition-fast: 150ms ease;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-family);
+  font-size: var(--text-base);
+  line-height: 1.5;
+  background: var(--color-bg);
+  color: var(--color-text);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-family-display);
+}
+
+h1 {
+  font-size: var(--text-3xl);
+  font-weight: var(--weight-bold);
+  letter-spacing: -0.02em;
+  color: var(--color-text);
+  margin: 0 0 var(--space-1);
+}
+
+h2 {
+  font-size: var(--text-lg);
+  font-weight: var(--weight-bold);
+  letter-spacing: -0.01em;
+  color: var(--color-text);
+  margin: 0 0 var(--space-1);
+}
+
+p {
+  margin: 0;
+}
+
+a {
+  color: var(--color-primary);
+  transition: color var(--transition-fast);
+}
+a:hover {
+  color: var(--color-primary-hover);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}

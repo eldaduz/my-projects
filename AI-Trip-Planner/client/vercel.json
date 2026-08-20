@@ -1,0 +1,13 @@
+{
+  "ignoreCommand": "git diff --quiet HEAD^ HEAD ./",
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "https://REPLACE-WITH-RENDER-SERVICE-URL.onrender.com/api/$1"
+    },
+    {
+      "source": "/((?!.*\\.).*)",
+      "destination": "/index.html"
+    }
+  ]
+}
