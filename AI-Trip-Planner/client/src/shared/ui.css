@@ -335,11 +335,19 @@ fieldset > div {
   align-items: center;
 }
 
-.pref-option input[type='radio'] {
+.pref-option input[type='radio'],
+.pref-option input[type='checkbox'] {
   position: absolute;
   opacity: 0;
   width: 1px;
   height: 1px;
+}
+
+.pref-option input[type='checkbox']:checked + label {
+  color: var(--color-primary);
+  background: var(--color-primary-tint);
+  border-color: var(--color-primary);
+  font-weight: var(--weight-semibold);
 }
 
 .pref-option label {

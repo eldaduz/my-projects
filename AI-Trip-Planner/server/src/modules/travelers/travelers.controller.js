@@ -6,6 +6,7 @@ import {
   INDOOR_OUTDOOR_OPTIONS,
   PREFERENCE_VALUES,
   PREFERENCE_CATEGORIES,
+  DIETARY_OPTIONS,
 } from './travelerProfile.model.js';
 import { HttpError } from '../../middleware/errorHandler.js';
 
@@ -106,6 +107,25 @@ function readPreferences(body) {
   return preferences;
 }
 
+function readDietaryRestrictions(body) {
+  if (body?.dietaryRestrictions === undefined) return undefined;
+  if (body.dietaryRestrictions === null) return null;
+  if (!Array.isArray(body.dietaryRestrictions)) {
+    throw new HttpError(400, 'Dietary restrictions must be a list.', 'INVALID_DIETARY_RESTRICTIONS');
+  }
+  const restrictions = [...new Set(body.dietaryRestrictions)];
+  for (const value of restrictions) {
+    if (!DIETARY_OPTIONS.includes(value)) {
+      throw new HttpError(
+        400,
+        `Unknown dietary restriction "${value}".`,
+        'INVALID_DIETARY_RESTRICTIONS',
+      );
+    }
+  }
+  return restrictions.length ? restrictions : null;
+}
+
 function readProfileFields(body) {
   return {
     travelerName: readTravelerName(body),
@@ -117,6 +137,7 @@ function readProfileFields(body) {
       'foodCuisineInterests',
       'INVALID_FOOD_CUISINE_INTERESTS',
     ),
+    dietaryRestrictions: readDietaryRestrictions(body),
     dietaryRequirements: readFreeText(body, 'dietaryRequirements', 'INVALID_DIETARY_REQUIREMENTS'),
     indoorOutdoorTendency: readIndoorOutdoorTendency(body),
     walkingTolerance: readWalkingTolerance(body),

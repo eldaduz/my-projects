@@ -8,6 +8,20 @@ const AGE_GROUPS = ['teen', 'adult', 'senior'];
 const PACE_OPTIONS = ['relaxed', 'balanced', 'intensive'];
 const WALKING_TOLERANCE_OPTIONS = ['low', 'moderate', 'high'];
 const INDOOR_OUTDOOR_OPTIONS = ['indoor', 'balanced', 'outdoor'];
+// ATP-86: common allergies/dietary needs, offered as a structured multi-select
+// alongside the free-text "other" fallback below.
+const DIETARY_OPTIONS = [
+  { value: 'nuts', label: 'Nuts' },
+  { value: 'shellfish', label: 'Shellfish' },
+  { value: 'gluten', label: 'Gluten' },
+  { value: 'dairy', label: 'Dairy' },
+  { value: 'egg', label: 'Egg' },
+  { value: 'soy', label: 'Soy' },
+  { value: 'halal', label: 'Halal' },
+  { value: 'kosher', label: 'Kosher' },
+  { value: 'vegetarian', label: 'Vegetarian' },
+  { value: 'vegan', label: 'Vegan' },
+];
 
 const EMPTY_FORM = {
   profileName: '',
@@ -16,6 +30,7 @@ const EMPTY_FORM = {
   pace: '',
   preferences: {},
   foodCuisineInterests: '',
+  dietaryRestrictions: [],
   dietaryRequirements: '',
   indoorOutdoorTendency: '',
   walkingTolerance: '',
@@ -80,6 +95,7 @@ export function TravelerProfilesPage() {
       pace: profile.pace ?? '',
       preferences: profile.preferences ?? {},
       foodCuisineInterests: profile.foodCuisineInterests ?? '',
+      dietaryRestrictions: profile.dietaryRestrictions ?? [],
       dietaryRequirements: profile.dietaryRequirements ?? '',
       indoorOutdoorTendency: profile.indoorOutdoorTendency ?? '',
       walkingTolerance: profile.walkingTolerance ?? '',
@@ -87,6 +103,18 @@ export function TravelerProfilesPage() {
       travelStyleNote: profile.travelStyleNote ?? '',
     });
     setFormError(null);
+  }
+
+  function toggleDietaryRestriction(value) {
+    setForm((current) => {
+      const has = current.dietaryRestrictions.includes(value);
+      return {
+        ...current,
+        dietaryRestrictions: has
+          ? current.dietaryRestrictions.filter((v) => v !== value)
+          : [...current.dietaryRestrictions, value],
+      };
+    });
   }
 
   function handlePreferenceChange(category, value) {
@@ -283,8 +311,27 @@ export function TravelerProfilesPage() {
               }
             />
           </div>
+          <fieldset className="field">
+            <legend>Allergies / dietary requirements (optional)</legend>
+            <span className="pref-options">
+              {DIETARY_OPTIONS.map((option) => {
+                const inputId = `dietary-restriction-${option.value}`;
+                return (
+                  <span key={option.value} className="pref-option">
+                    <input
+                      type="checkbox"
+                      id={inputId}
+                      checked={form.dietaryRestrictions.includes(option.value)}
+                      onChange={() => toggleDietaryRestriction(option.value)}
+                    />
+                    <label htmlFor={inputId}>{option.label}</label>
+                  </span>
+                );
+              })}
+            </span>
+          </fieldset>
           <div className="field">
-            <label htmlFor="dietary-requirements">Dietary requirements (optional)</label>
+            <label htmlFor="dietary-requirements">Other allergies/dietary notes (optional)</label>
             <input
               id="dietary-requirements"
               className="input"

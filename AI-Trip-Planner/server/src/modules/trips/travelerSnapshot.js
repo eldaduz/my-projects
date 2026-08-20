@@ -4,6 +4,7 @@ const SNAPSHOT_FIELDS = [
   'pace',
   'preferences',
   'foodCuisineInterests',
+  'dietaryRestrictions',
   'dietaryRequirements',
   'indoorOutdoorTendency',
   'walkingTolerance',

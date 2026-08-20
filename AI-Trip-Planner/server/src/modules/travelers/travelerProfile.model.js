@@ -5,6 +5,18 @@ const PACE_OPTIONS = ['relaxed', 'balanced', 'intensive'];
 const WALKING_TOLERANCE_OPTIONS = ['low', 'moderate', 'high'];
 const INDOOR_OUTDOOR_OPTIONS = ['indoor', 'balanced', 'outdoor'];
 const PREFERENCE_VALUES = ['neutral', 'interested', 'avoid', 'block'];
+const DIETARY_OPTIONS = [
+  'nuts',
+  'shellfish',
+  'gluten',
+  'dairy',
+  'egg',
+  'soy',
+  'halal',
+  'kosher',
+  'vegetarian',
+  'vegan',
+];
 
 // PRD §5.3-5.4: activity/category preferences plus guided tours/day trips are
 // presented once, as a single consistent Neutral/Interested/Avoid/Block list
@@ -70,6 +82,12 @@ const travelerProfileSchema = new mongoose.Schema(
       trim: true,
       maxlength: 500,
     },
+    // ATP-86: structured multi-select (common allergies/dietary needs), with
+    // `dietaryRequirements` below repurposed as the "other" free-text fallback.
+    dietaryRestrictions: {
+      type: [{ type: String, enum: DIETARY_OPTIONS }],
+      default: undefined,
+    },
     dietaryRequirements: {
       type: String,
       trim: true,
@@ -119,5 +137,6 @@ export {
   INDOOR_OUTDOOR_OPTIONS,
   PREFERENCE_VALUES,
   PREFERENCE_CATEGORIES,
+  DIETARY_OPTIONS,
   preferencesSchema,
 };

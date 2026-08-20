@@ -5,6 +5,7 @@ const TRAVELER_FIELDS = [
   'ageGroup',
   'pace',
   'foodCuisineInterests',
+  'dietaryRestrictions',
   'dietaryRequirements',
   'indoorOutdoorTendency',
   'walkingTolerance',

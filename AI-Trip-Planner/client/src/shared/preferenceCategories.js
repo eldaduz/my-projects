@@ -16,7 +16,7 @@ export const PREFERENCE_GROUPS = [
   {
     name: 'Food & drink',
     categories: [
-      { key: 'food', label: 'Food' },
+      { key: 'food', label: 'Food & Dining Activities' },
       { key: 'nightlife', label: 'Nightlife' },
     ],
   },

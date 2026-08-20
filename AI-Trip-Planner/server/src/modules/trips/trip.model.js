@@ -5,6 +5,7 @@ import {
   PACE_OPTIONS,
   WALKING_TOLERANCE_OPTIONS,
   INDOOR_OUTDOOR_OPTIONS,
+  DIETARY_OPTIONS,
 } from '../travelers/travelerProfile.model.js';
 
 // DRAFT is the only status this Feature (F06) creates/transitions. Later
@@ -32,6 +33,7 @@ const tripTravelerSchema = new mongoose.Schema(
     pace: { type: String, enum: PACE_OPTIONS },
     preferences: { type: preferencesSchema },
     foodCuisineInterests: { type: String, trim: true, maxlength: 500 },
+    dietaryRestrictions: { type: [{ type: String, enum: DIETARY_OPTIONS }], default: undefined },
     dietaryRequirements: { type: String, trim: true, maxlength: 500 },
     indoorOutdoorTendency: { type: String, enum: INDOOR_OUTDOOR_OPTIONS },
     walkingTolerance: { type: String, enum: WALKING_TOLERANCE_OPTIONS },
