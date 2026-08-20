@@ -37,6 +37,19 @@ A split-screen coding practice game where users solve JavaScript exercises, subm
 * **Tech Stack:** React, Vite, Google Gemini API, react-markdown
 * **Explore the Code:** [View Project Folder](./code-dojo) (See the dedicated README for full feature details).
 
+---
+
+### 4. ✈️ AI Trip Planner
+**AI-generated day-by-day travel itineraries, built around traveler preferences.**
+
+A full-stack itinerary planning app: users build a trip profile (destination, dates, travelers, preferences), then generate and iteratively replan a day-by-day itinerary through a Gemini-backed AI boundary. Includes reusable traveler profiles with structured preference/dietary controls, a guided trip questionnaire, natural-language replanning, and abuse-protection (rate limiting, concurrency guard, stale-operation recovery).
+
+* **Live Demo:** [ai-trip-planner-murex-two.vercel.app](https://ai-trip-planner-murex-two.vercel.app/)
+* **Backend API:** [Render API](https://ai-trip-planner-vwrq.onrender.com/api/health)
+* **Hosting note:** The backend currently runs on Render Free, so the first API request after inactivity may take longer while the service wakes up. A refresh or second request is usually faster.
+* **Tech Stack:** React, Vite, Node.js, Express, MongoDB Atlas, Mongoose, JWT (httpOnly cookies), Google Gemini API, Vercel Edge Middleware, Render, Vercel
+* **Explore the Code:** [View Project Folder](./AI-Trip-Planner) (See the dedicated README for architecture and feature details).
+
 ## 🛠️ Core Tech Stack & Tools
 
 * **Frontend Frameworks:** React.js, Vite
