@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { apiClient } from '../api/apiClient';
 import { formatDate } from '../shared/dateFormat';
 import { ACTIVITY_TYPES, PERIODS } from '../shared/activityTypes';
+import { TripWeather } from './TripWeather';
+import { DestinationPhoto } from './DestinationPhoto';
 
 const PERIOD_LABELS = { MORNING: 'Morning', AFTERNOON: 'Afternoon', EVENING: 'Evening' };
 
@@ -192,7 +194,7 @@ function ActivityForm({
 }
 
 // Itinerary display + manual editing (design/Itinerary.dc.html; F15 view, F16 editing).
-export function ItineraryView({ tripId, itinerary, onUpdate }) {
+export function ItineraryView({ tripId, itinerary, destination, startDate, endDate, onUpdate }) {
   const days = itinerary.days ?? [];
   const [activeDay, setActiveDay] = useState(days[0]?.dayNumber ?? 1);
   const [editingId, setEditingId] = useState(null);
@@ -270,6 +272,8 @@ export function ItineraryView({ tripId, itinerary, onUpdate }) {
 
   return (
     <section aria-labelledby="itinerary-heading" className="card">
+      <DestinationPhoto destination={destination} />
+      <TripWeather destination={destination} startDate={startDate} endDate={endDate} />
       <h2 id="itinerary-heading">Itinerary</h2>
 
       <div role="tablist" aria-label="Trip days" className="day-tabs">

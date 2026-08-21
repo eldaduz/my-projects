@@ -45,6 +45,19 @@ function readEnv() {
     aiRateLimitIpMax: Number(process.env.AI_RATE_LIMIT_IP_MAX) || 20,
     // ATP-71: a GENERATING/REPLANNING trip older than this recovers on next read.
     aiStaleOperationMs: Number(process.env.AI_STALE_OPERATION_MS) || 2 * 60 * 1000,
+    // ATP-89: Pexels is optional — photoAdapter falls back to the no-key
+    // Wikipedia REST summary endpoint when this is unset or Pexels has no result.
+    pexelsApiKey: process.env.PEXELS_API_KEY,
+    // ATP-89: shared budget guard for the three enrichment endpoints — default
+    // 30 requests / 60s / IP, sized for autocomplete's per-keystroke traffic.
+    enrichmentRateLimitMax: Number(process.env.ENRICHMENT_RATE_LIMIT_MAX) || 30,
+    enrichmentRateLimitWindowMs: Number(process.env.ENRICHMENT_RATE_LIMIT_WINDOW_MS) || 60 * 1000,
+    // ATP-89 (Codex review finding): Pexels' 200 req/hour quota is
+    // account-wide, so this limiter (see enrichmentRateLimiter.js's
+    // photoRateLimiter, keyed globally not per-IP) caps total /photo calls
+    // across all callers combined. Default: 180 requests / hour, total.
+    photoRateLimitMax: Number(process.env.PHOTO_RATE_LIMIT_MAX) || 180,
+    photoRateLimitWindowMs: Number(process.env.PHOTO_RATE_LIMIT_WINDOW_MS) || 60 * 60 * 1000,
   };
 }
 

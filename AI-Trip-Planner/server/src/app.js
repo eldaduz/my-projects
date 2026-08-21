@@ -7,11 +7,20 @@ import { healthRouter } from './routes/health.routes.js';
 import { authRouter } from './modules/auth/auth.routes.js';
 import { travelersRouter } from './modules/travelers/travelers.routes.js';
 import { createTripsRouter } from './modules/trips/trips.routes.js';
+import { createEnrichmentRouter } from './modules/enrichment/enrichment.routes.js';
+import { createPlacesAdapter } from './modules/enrichment/placesAdapter.js';
+import { createWeatherAdapter } from './modules/enrichment/weatherAdapter.js';
+import { createPhotoAdapter } from './modules/enrichment/photoAdapter.js';
 import { notFoundHandler, errorHandler } from './middleware/errorHandler.js';
 import { requireExpectedOrigin } from './middleware/requireExpectedOrigin.js';
 import { requireProxySecret } from './middleware/requireProxySecret.js';
 
-export function createApp({ geminiAdapter } = {}) {
+export function createApp({
+  geminiAdapter,
+  placesAdapter = createPlacesAdapter(),
+  weatherAdapter = createWeatherAdapter(),
+  photoAdapter = createPhotoAdapter({ apiKey: env.pexelsApiKey }),
+} = {}) {
   const app = express();
 
   // Production is Vercel (an /api rewrite) -> Render -> this app
@@ -45,6 +54,11 @@ export function createApp({ geminiAdapter } = {}) {
   app.use('/api/auth', requireProxySecret, authRouter);
   app.use('/api/traveler-profiles', requireProxySecret, travelersRouter);
   app.use('/api/trips', requireProxySecret, createTripsRouter({ geminiAdapter }));
+  app.use(
+    '/api/enrichment',
+    requireProxySecret,
+    createEnrichmentRouter({ placesAdapter, weatherAdapter, photoAdapter }),
+  );
 
   // This server is API-only (no HTML pages), so a JSON 404 applies to any
   // unmatched route, not just /api/*.

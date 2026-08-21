@@ -5,6 +5,7 @@ import { GroupedPreferenceSelector } from '../shared/GroupedPreferenceSelector';
 import { PREFERENCE_GROUPS, PREFERENCE_CATEGORIES } from '../shared/preferenceCategories';
 import { formatDate } from '../shared/dateFormat';
 import { ItineraryView } from './ItineraryView';
+import { DestinationAutocomplete } from './DestinationAutocomplete';
 
 const BASICS_COMPLETE_STEP = 2;
 const TRAVELERS_COMPLETE_STEP = 3;
@@ -983,7 +984,14 @@ export function TripWizardPage() {
       )}
 
       {!showForm && trip.currentItinerary && (
-        <ItineraryView tripId={id} itinerary={trip.currentItinerary} onUpdate={setTrip} />
+        <ItineraryView
+          tripId={id}
+          itinerary={trip.currentItinerary}
+          destination={trip.destination}
+          startDate={trip.startDate}
+          endDate={trip.endDate}
+          onUpdate={setTrip}
+        />
       )}
 
       {showForm && (
@@ -992,9 +1000,8 @@ export function TripWizardPage() {
           <form onSubmit={handleSubmit} noValidate>
             <div className="field">
               <label htmlFor="destination">Destination</label>
-              <input
+              <DestinationAutocomplete
                 id="destination"
-                className="input"
                 required
                 maxLength={200}
                 value={form?.destination ?? ''}
