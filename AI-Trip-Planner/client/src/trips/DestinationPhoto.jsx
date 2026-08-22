@@ -1,8 +1,12 @@
 import { useEffect, useState } from 'react';
 import { apiClient } from '../api/apiClient';
 
-export function DestinationPhoto({ destination }) {
-  const [photo, setPhoto] = useState(null);
+// ponytail: in-memory only, no TTL/eviction — fine for a session's worth of
+// trip cards; add expiry if this ever needs to reflect photo changes live.
+const photoCache = new Map();
+
+export function DestinationPhoto({ destination, thumbnail = false }) {
+  const [photo, setPhoto] = useState(() => (destination && photoCache.get(destination)) || null);
 
   useEffect(() => {
     let cancelled = false;
@@ -13,10 +17,17 @@ export function DestinationPhoto({ destination }) {
 
     if (!destination) return undefined;
 
+    if (photoCache.has(destination)) {
+      setPhoto(photoCache.get(destination));
+      return undefined;
+    }
+
     apiClient
       .get(`/enrichment/photo?destination=${encodeURIComponent(destination)}`)
       .then((data) => {
-        if (!cancelled) setPhoto(data.available ? data : null);
+        const result = data.available ? data : null;
+        photoCache.set(destination, result);
+        if (!cancelled) setPhoto(result);
       })
       .catch(() => {
         if (!cancelled) setPhoto(null);
@@ -30,9 +41,9 @@ export function DestinationPhoto({ destination }) {
   if (!photo) return null;
 
   return (
-    <figure className="destination-photo">
-      <img src={photo.url} alt={destination} />
-      <figcaption>{photo.attribution}</figcaption>
+    <figure className="destination-photo" aria-hidden={thumbnail || undefined}>
+      <img src={photo.url} alt={thumbnail ? '' : destination} />
+      {!thumbnail && <figcaption>{photo.attribution}</figcaption>}
     </figure>
   );
 }

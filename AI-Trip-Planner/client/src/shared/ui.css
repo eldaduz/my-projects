@@ -512,6 +512,32 @@ fieldset > div {
   color: var(--color-text-muted);
 }
 
+.destination-photo {
+  margin: 0 0 var(--space-4);
+}
+
+.destination-photo img {
+  width: 100%;
+  max-height: 320px;
+  object-fit: cover;
+  border-radius: var(--radius-lg);
+  display: block;
+}
+
+.destination-photo figcaption {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  margin-top: var(--space-2);
+}
+
+.page-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  color: var(--color-text-muted);
+}
+
 /* Trip cards grid */
 
 .trip-grid {
@@ -529,6 +555,7 @@ fieldset > div {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-sm);
+  overflow: hidden;
   cursor: pointer;
   text-align: left;
   font-family: inherit;
@@ -551,6 +578,19 @@ fieldset > div {
 .trip-card .item-row-sub {
   font-size: var(--text-sm);
   color: var(--color-text-muted);
+}
+
+.trip-card .destination-photo {
+  margin: calc(var(--space-5) * -1) calc(var(--space-5) * -1) 0;
+}
+
+.trip-card .destination-photo img {
+  max-height: 140px;
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+}
+
+.trip-card .destination-photo figcaption {
+  display: none;
 }
 
 .page-header {

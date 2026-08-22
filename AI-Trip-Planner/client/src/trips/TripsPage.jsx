@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { apiClient } from '../api/apiClient';
 import { EmptyState } from '../shared/EmptyState';
+import { DestinationPhoto } from './DestinationPhoto';
 
 export function TripsPage() {
   const [trips, setTrips] = useState([]);
@@ -84,6 +85,7 @@ export function TripsPage() {
                 className="trip-card"
                 onClick={() => navigate(`/trips/${trip.id}`)}
               >
+                <DestinationPhoto destination={trip.destination} thumbnail />
                 <h2>{trip.tripTitle || trip.destination || 'Untitled trip'}</h2>
                 <span className="status-pill">{trip.status}</span>
               </button>
