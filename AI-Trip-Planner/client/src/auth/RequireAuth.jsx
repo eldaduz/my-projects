@@ -5,9 +5,10 @@ export function RequireAuth({ children, fallback = null }) {
 
   if (status === 'loading') {
     return (
-      <p className="page-loading" role="status" aria-live="polite">
+      <div className="page-loading" role="status" aria-live="polite">
+        <span className="spinner" aria-hidden="true" />
         Loading…
-      </p>
+      </div>
     );
   }
   if (status !== 'authenticated') return fallback;

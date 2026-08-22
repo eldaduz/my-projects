@@ -534,8 +534,24 @@ fieldset > div {
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: var(--space-3);
   min-height: 60vh;
   color: var(--color-text-muted);
+}
+
+.spinner {
+  width: 1.1em;
+  height: 1.1em;
+  border: 2px solid var(--color-border);
+  border-top-color: var(--color-primary);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* Trip cards grid */
