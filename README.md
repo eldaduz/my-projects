@@ -17,18 +17,20 @@ WorkNest is a WeWork-inspired coworking reservation system built as a full-stack
 
 ---
 
-### 2. 🛡️ Task Master RPG
-**Turn your productivity into a game.**
+### 2. ✈️ AI Trip Planner
+**AI-generated day-by-day travel itineraries, built around traveler preferences.**
 
-A gamified to-do list application that rewards users with XP, levels, and ranks for completing real-world tasks. It features complex state management, data persistence, and a highly interactive UI.
+A full-stack itinerary planning app: users build a trip profile (destination, dates, travelers, preferences), then generate and iteratively replan a day-by-day itinerary through a Gemini-backed AI boundary. Includes reusable traveler profiles with structured preference/dietary controls, a guided trip questionnaire, natural-language replanning, and abuse-protection (rate limiting, concurrency guard, stale-operation recovery).
 
-* **Live Demo:** [task-master-rpg.vercel.app](https://task-master-rpg.vercel.app/)
-* **Tech Stack:** React, Vite, Tailwind CSS, localStorage
-* **Explore the Code:** [View Project Folder](./Task_Master_RPG) (See the dedicated README for deep architectural details).
+* **Live Demo:** [ai-trip-planner-murex-two.vercel.app](https://ai-trip-planner-murex-two.vercel.app/)
+* **Backend API:** [Render API](https://ai-trip-planner-vwrq.onrender.com/api/health)
+* **Hosting note:** The backend currently runs on Render Free, so the first API request after inactivity may take longer while the service wakes up. A refresh or second request is usually faster.
+* **Tech Stack:** React, Vite, Node.js, Express, MongoDB Atlas, Mongoose, JWT (httpOnly cookies), Google Gemini API, Vercel Edge Middleware, Render, Vercel
+* **Explore the Code:** [View Project Folder](./AI-Trip-Planner) (See the dedicated README for architecture and feature details).
 
 ---
 
-### 3. 💻 Code Dojo
+### 3. 💻 Code Dojo *(older project, no longer maintained)*
 **Practice JavaScript with AI-powered feedback.**
 
 A split-screen coding practice game where users solve JavaScript exercises, submit solutions for Gemini-powered evaluation, and progress through a gamified XP and level system.
@@ -39,16 +41,14 @@ A split-screen coding practice game where users solve JavaScript exercises, subm
 
 ---
 
-### 4. ✈️ AI Trip Planner
-**AI-generated day-by-day travel itineraries, built around traveler preferences.**
+### 4. 🛡️ Task Master RPG *(older project, no longer maintained)*
+**Turn your productivity into a game.**
 
-A full-stack itinerary planning app: users build a trip profile (destination, dates, travelers, preferences), then generate and iteratively replan a day-by-day itinerary through a Gemini-backed AI boundary. Includes reusable traveler profiles with structured preference/dietary controls, a guided trip questionnaire, natural-language replanning, and abuse-protection (rate limiting, concurrency guard, stale-operation recovery).
+A gamified to-do list application that rewards users with XP, levels, and ranks for completing real-world tasks. It features complex state management, data persistence, and a highly interactive UI.
 
-* **Live Demo:** [ai-trip-planner-murex-two.vercel.app](https://ai-trip-planner-murex-two.vercel.app/)
-* **Backend API:** [Render API](https://ai-trip-planner-vwrq.onrender.com/api/health)
-* **Hosting note:** The backend currently runs on Render Free, so the first API request after inactivity may take longer while the service wakes up. A refresh or second request is usually faster.
-* **Tech Stack:** React, Vite, Node.js, Express, MongoDB Atlas, Mongoose, JWT (httpOnly cookies), Google Gemini API, Vercel Edge Middleware, Render, Vercel
-* **Explore the Code:** [View Project Folder](./AI-Trip-Planner) (See the dedicated README for architecture and feature details).
+* **Live Demo:** [task-master-rpg.vercel.app](https://task-master-rpg.vercel.app/)
+* **Tech Stack:** React, Vite, Tailwind CSS, localStorage
+* **Explore the Code:** [View Project Folder](./Task_Master_RPG) (See the dedicated README for deep architectural details).
 
 ## 🛠️ Core Tech Stack & Tools
 
