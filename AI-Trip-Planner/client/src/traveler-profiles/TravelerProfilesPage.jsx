@@ -25,7 +25,6 @@ const DIETARY_OPTIONS = [
 
 const EMPTY_FORM = {
   profileName: '',
-  travelerName: '',
   ageGroup: '',
   pace: '',
   preferences: {},
@@ -90,7 +89,6 @@ export function TravelerProfilesPage() {
     setEditingId(profile.id);
     setForm({
       profileName: profile.profileName,
-      travelerName: profile.travelerName ?? '',
       ageGroup: profile.ageGroup ?? '',
       pace: profile.pace ?? '',
       preferences: profile.preferences ?? {},
@@ -173,13 +171,7 @@ export function TravelerProfilesPage() {
               <li key={profile.id} className="item-row">
                 <span className="item-row-label">
                   {profile.profileName}
-                  {(profile.travelerName || profile.ageGroup) && (
-                    <span className="item-row-sub">
-                      {profile.travelerName}
-                      {profile.travelerName && profile.ageGroup ? ' · ' : ''}
-                      {profile.ageGroup}
-                    </span>
-                  )}
+                  {profile.ageGroup && <span className="item-row-sub">{profile.ageGroup}</span>}
                 </span>
                 <span className="item-row-actions">
                   <button type="button" className="btn btn-sm" onClick={() => startEdit(profile)}>
@@ -203,7 +195,7 @@ export function TravelerProfilesPage() {
         <h2 id="profile-form-heading">{editingId ? 'Edit profile' : 'Create a profile'}</h2>
         <form onSubmit={handleSubmit} noValidate>
           <div className="field">
-            <label htmlFor="profile-name">Profile name (required)</label>
+            <label htmlFor="profile-name">Name (required)</label>
             <input
               id="profile-name"
               className="input"
@@ -212,18 +204,6 @@ export function TravelerProfilesPage() {
               value={form.profileName}
               onChange={(event) =>
                 setForm((current) => ({ ...current, profileName: event.target.value }))
-              }
-            />
-          </div>
-          <div className="field">
-            <label htmlFor="traveler-name">Traveler name (optional)</label>
-            <input
-              id="traveler-name"
-              className="input"
-              maxLength={100}
-              value={form.travelerName}
-              onChange={(event) =>
-                setForm((current) => ({ ...current, travelerName: event.target.value }))
               }
             />
           </div>

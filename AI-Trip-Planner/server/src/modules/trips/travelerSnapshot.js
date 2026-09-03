@@ -1,5 +1,4 @@
 const SNAPSHOT_FIELDS = [
-  'travelerName',
   'ageGroup',
   'pace',
   'preferences',
@@ -16,7 +15,10 @@ const SNAPSHOT_FIELDS = [
 // for embedding in a Trip. Called once, at attach-time — the result is never
 // re-derived from the source profile again (SYSTEM_DESIGN §3.2/§4).
 export function buildTravelerSnapshot(profile) {
-  const snapshot = { sourceTravelerProfileId: profile._id };
+  const snapshot = {
+    sourceTravelerProfileId: profile._id,
+    travelerName: profile.profileName,
+  };
   for (const field of SNAPSHOT_FIELDS) {
     const value = profile[field];
     if (value !== undefined) snapshot[field] = value;

@@ -55,14 +55,12 @@ const travelerProfileSchema = new mongoose.Schema(
       required: true,
       index: true,
     },
+    // profileName is both the label shown in the profile list and the name
+    // used for this traveler in trip snapshots / the Gemini prompt — there's
+    // no separate travelerName (it was always the same value in practice).
     profileName: {
       type: String,
       required: true,
-      trim: true,
-      maxlength: 100,
-    },
-    travelerName: {
-      type: String,
       trim: true,
       maxlength: 100,
     },

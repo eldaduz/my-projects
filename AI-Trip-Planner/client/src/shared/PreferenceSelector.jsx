@@ -59,7 +59,11 @@ export function PreferenceSelector({ idPrefix, categories, values, onChange }) {
         <fieldset key={key} className="pref-row">
           <legend>
             {label}
-            {hint && <span className="hint"> — {hint}</span>}
+            {hint && (
+              <span className="hint-icon" tabIndex={0} title={hint} aria-label={hint}>
+                <span aria-hidden="true">ⓘ</span>
+              </span>
+            )}
           </legend>
           <span className="pref-options">
             {PREFERENCE_OPTIONS.map((option) => {

@@ -324,6 +324,12 @@ fieldset > div {
   color: var(--color-text);
 }
 
+.hint-icon {
+  margin-left: var(--space-1);
+  color: var(--color-text-muted);
+  cursor: help;
+}
+
 .pref-options {
   display: flex;
   gap: var(--space-4);
