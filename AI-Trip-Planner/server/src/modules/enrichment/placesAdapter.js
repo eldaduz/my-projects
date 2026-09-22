@@ -46,7 +46,13 @@ export function createPlacesAdapter({
   return {
     async autocomplete(query) {
       const features = await fetchFeatures({ query, limit: 5, baseUrl, timeoutMs, fetchImpl });
-      return features.map(featureToPlace).filter((place) => place !== null);
+      const places = features.map(featureToPlace).filter((place) => place !== null);
+      const seenLabels = new Set();
+      return places.filter((place) => {
+        if (seenLabels.has(place.label)) return false;
+        seenLabels.add(place.label);
+        return true;
+      });
     },
     async geocode(query) {
       const features = await fetchFeatures({ query, limit: 1, baseUrl, timeoutMs, fetchImpl });
