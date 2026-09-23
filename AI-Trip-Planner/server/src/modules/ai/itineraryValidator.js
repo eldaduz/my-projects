@@ -1,3 +1,25 @@
+// ╔══════════════════════════════════════════════════════════════════╗
+// ║ ITINERARY VALIDATOR — "Trust but verify" for AI output          ║
+// ║                                                                  ║
+// ║ WHY VALIDATE AI OUTPUT? Gemini can hallucinate: wrong dates,    ║
+// ║ invalid enums, wrong number of days, ignoring "block" prefs.    ║
+// ║ This validator catches those errors and reports them.           ║
+// ║                                                                  ║
+// ║ validateAndFinalizeItinerary() does:                             ║
+// ║   1. Parse JSON (strip markdown fences if present)              ║
+// ║   2. Validate structure (day count, dates, enums, capacity)     ║
+// ║   3. Enforce blocked preferences (SECURITY: user said "block") ║
+// ║   4. If valid → assign UUIDs to activities → return itinerary  ║
+// ║   5. If invalid → return error list (for corrective pass)      ║
+// ║                                                                  ║
+// ║ REUSE: validateAndFinalizeItinerary() is called in BOTH         ║
+// ║ trips.controller.js generate() AND replan() — same validation  ║
+// ║ pipeline for both paths. NOT used anywhere else.                ║
+// ║                                                                  ║
+// ║ REUSE: Uses parseRawItineraryJson(), assignActivityIds(),       ║
+// ║ resolveEffectivePace() from itineraryContract.js               ║
+// ╚══════════════════════════════════════════════════════════════════╝
+
 import {
   PERIODS,
   ACTIVITY_TYPES,

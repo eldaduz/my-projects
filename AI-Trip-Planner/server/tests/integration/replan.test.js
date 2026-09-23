@@ -1,0 +1,310 @@
+import { describe, test, expect, beforeAll, afterEach, afterAll } from 'vitest';
+import request from 'supertest';
+import mongoose from 'mongoose';
+import { MongoMemoryServer } from 'mongodb-memory-server';
+import { createApp } from '../../src/app.js';
+import { User } from '../../src/modules/auth/user.model.js';
+import { Trip } from '../../src/modules/trips/trip.model.js';
+import { createFakeGeminiAdapter } from '../../src/modules/ai/fakeGeminiAdapter.js';
+import { GeminiRequestError } from '../../src/modules/ai/geminiAdapter.js';
+import validItinerary from '../fixtures/itineraries/validBalancedItinerary.json';
+
+let mongod;
+let app;
+
+beforeAll(async () => {
+  mongod = await MongoMemoryServer.create();
+  await mongoose.connect(mongod.getUri());
+});
+
+afterEach(async () => {
+  await User.deleteMany({});
+  await Trip.deleteMany({});
+});
+
+afterAll(async () => {
+  await mongoose.disconnect();
+  if (mongod) await mongod.stop();
+});
+
+async function agentFor(email = 'replanner@example.com') {
+  const password = 'Sup3rSecret!';
+  const agent = request.agent(app);
+  await agent.post('/api/auth/register').send({ email, password });
+  await agent.post('/api/auth/login').send({ email, password });
+  return agent;
+}
+
+const priorItinerary = { destination: 'Rome', days: [{ dayNumber: 1, title: 'Manually edited', activities: [] }] };
+
+// A PLANNED trip with a persisted CurrentItinerary (as if F13 generation and
+// possibly F16 manual edits already happened) — the only state replan reads.
+async function plannedTrip(agent) {
+  const created = await agent.post('/api/trips').send({
+    destination: 'Rome',
+    startDate: '2026-09-01',
+    endDate: '2026-09-02',
+    wizardStep: 2,
+  });
+  const id = created.body.trip.id;
+  await agent.patch(`/api/trips/${id}`).send({
+    addTripOnlyTraveler: { travelerName: 'Sam' },
+    wizardStep: 3,
+  });
+  await agent.patch(`/api/trips/${id}`).send({ wizardStep: 4 });
+  await Trip.findByIdAndUpdate(id, {
+    status: 'PLANNED',
+    itineraryStatus: 'CURRENT',
+    currentItinerary: priorItinerary,
+  });
+  return id;
+}
+
+describe('POST /api/trips/:id/replan-itinerary', () => {
+  test('rejects unauthenticated requests before loading or calling the adapter', async () => {
+    const fake = createFakeGeminiAdapter({ replanResponseText: JSON.stringify(validItinerary) });
+    app = createApp({ geminiAdapter: fake });
+    const agent = await agentFor('unauthenticated@example.com');
+    const id = await plannedTrip(agent);
+
+    const res = await request(app)
+      .post(`/api/trips/${id}/replan-itinerary`)
+      .send({ replanInstruction: 'Add more museums' });
+
+    expect(res.status).toBe(401);
+    expect(fake.replanCalls).toHaveLength(0);
+  });
+
+  test('rejects a non-owner without calling the adapter or mutating the trip', async () => {
+    const fake = createFakeGeminiAdapter({ replanResponseText: JSON.stringify(validItinerary) });
+    app = createApp({ geminiAdapter: fake });
+    const owner = await agentFor('owner@example.com');
+    const id = await plannedTrip(owner);
+    const before = await Trip.findById(id).lean();
+    const stranger = await agentFor('stranger@example.com');
+
+    const res = await stranger
+      .post(`/api/trips/${id}/replan-itinerary`)
+      .send({ replanInstruction: 'Add more museums' });
+    const after = await Trip.findById(id).lean();
+
+    expect(res.status).toBe(404);
+    expect(fake.replanCalls).toHaveLength(0);
+    expect(after).toEqual(before);
+  });
+
+  test.each(['DRAFT', 'READY_FOR_GENERATION', 'GENERATING'])(
+    'rejects a %s trip without calling the adapter',
+    async (status) => {
+      const fake = createFakeGeminiAdapter({ replanResponseText: JSON.stringify(validItinerary) });
+      app = createApp({ geminiAdapter: fake });
+      const agent = await agentFor(`${status.toLowerCase()}@example.com`);
+      const id = await plannedTrip(agent);
+      await Trip.findByIdAndUpdate(id, { status });
+      const before = await Trip.findById(id).lean();
+
+      const res = await agent
+        .post(`/api/trips/${id}/replan-itinerary`)
+        .send({ replanInstruction: 'Add more museums' });
+      const after = await Trip.findById(id).lean();
+
+      expect(res.status).toBe(409);
+      expect(fake.replanCalls).toHaveLength(0);
+      expect(after).toEqual(before);
+    },
+  );
+
+  test('rejects a PLANNED trip with no CurrentItinerary yet', async () => {
+    const fake = createFakeGeminiAdapter({ replanResponseText: JSON.stringify(validItinerary) });
+    app = createApp({ geminiAdapter: fake });
+    const agent = await agentFor('no-itinerary@example.com');
+    const id = await plannedTrip(agent);
+    await Trip.findByIdAndUpdate(id, { currentItinerary: null, itineraryStatus: null });
+
+    const res = await agent
+      .post(`/api/trips/${id}/replan-itinerary`)
+      .send({ replanInstruction: 'Add more museums' });
+
+    expect(res.status).toBe(409);
+    expect(fake.replanCalls).toHaveLength(0);
+  });
+
+  test('rejects a missing or blank replanInstruction without calling the adapter', async () => {
+    const fake = createFakeGeminiAdapter({ replanResponseText: JSON.stringify(validItinerary) });
+    app = createApp({ geminiAdapter: fake });
+    const agent = await agentFor('blank@example.com');
+    const id = await plannedTrip(agent);
+
+    const res = await agent.post(`/api/trips/${id}/replan-itinerary`).send({ replanInstruction: '   ' });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error.code).toBe('INVALID_REPLAN_INSTRUCTION');
+    expect(fake.replanCalls).toHaveLength(0);
+  });
+
+  test('persists a valid replan response, restoring PLANNED/CURRENT, and sends prior itinerary + instruction in context', async () => {
+    const fake = createFakeGeminiAdapter({ replanResponseText: JSON.stringify(validItinerary) });
+    app = createApp({ geminiAdapter: fake });
+    const agent = await agentFor();
+    const id = await plannedTrip(agent);
+
+    const res = await agent
+      .post(`/api/trips/${id}/replan-itinerary`)
+      .send({ replanInstruction: 'Add more museums' });
+
+    expect(res.status).toBe(200);
+    expect(res.body.trip).toMatchObject({ status: 'PLANNED', itineraryStatus: 'CURRENT' });
+    expect(res.body.trip.currentItinerary.days[0].activities[0].id).toEqual(expect.any(String));
+    expect(fake.replanCalls).toHaveLength(1);
+    expect(fake.correctionCalls).toHaveLength(0);
+    expect(fake.replanCalls[0].currentItinerary).toEqual(priorItinerary);
+    expect(fake.replanCalls[0].replanInstruction).toBe('Add more museums');
+  });
+
+  test('corrects one invalid response and persists only the finalized correction', async () => {
+    const fake = createFakeGeminiAdapter({
+      replanResponseText: JSON.stringify({ destination: '', days: [] }),
+      correctionResponseText: JSON.stringify(validItinerary),
+    });
+    app = createApp({ geminiAdapter: fake });
+    const agent = await agentFor('correct@example.com');
+    const id = await plannedTrip(agent);
+
+    const res = await agent
+      .post(`/api/trips/${id}/replan-itinerary`)
+      .send({ replanInstruction: 'Add more museums' });
+
+    expect(res.status).toBe(200);
+    expect(res.body.trip.status).toBe('PLANNED');
+    expect(fake.replanCalls).toHaveLength(1);
+    expect(fake.correctionCalls).toHaveLength(1);
+    expect(res.body.trip.currentItinerary.destination).toBe(validItinerary.destination);
+  });
+
+  test('restores PLANNED and the prior itinerary after final invalid output', async () => {
+    const fake = createFakeGeminiAdapter({
+      replanResponseText: JSON.stringify({ destination: '', days: [] }),
+      correctionResponseText: JSON.stringify({ destination: '', days: [] }),
+    });
+    app = createApp({ geminiAdapter: fake });
+    const agent = await agentFor('invalid@example.com');
+    const id = await plannedTrip(agent);
+
+    const res = await agent
+      .post(`/api/trips/${id}/replan-itinerary`)
+      .send({ replanInstruction: 'Add more museums' });
+    const stored = await Trip.findById(id).lean();
+
+    expect(res.status).toBe(502);
+    expect(res.body.error.message).not.toMatch(/SCHEMA|destination|days|Gemini|provider/i);
+    expect(stored).toMatchObject({ status: 'PLANNED', itineraryStatus: 'CURRENT', currentItinerary: priorItinerary });
+    expect(fake.correctionCalls).toHaveLength(1);
+  });
+
+  test('restores PLANNED after a provider failure without exposing provider details', async () => {
+    const fake = createFakeGeminiAdapter({ replanError: new Error('provider secret details') });
+    app = createApp({ geminiAdapter: fake });
+    const agent = await agentFor('provider-failure@example.com');
+    const id = await plannedTrip(agent);
+
+    const res = await agent
+      .post(`/api/trips/${id}/replan-itinerary`)
+      .send({ replanInstruction: 'Add more museums' });
+    const stored = await Trip.findById(id).lean();
+
+    expect(res.status).toBe(502);
+    expect(res.body.error.message).not.toContain('provider secret');
+    expect(stored).toMatchObject({ status: 'PLANNED', itineraryStatus: 'CURRENT', currentItinerary: priorItinerary });
+    expect(fake.replanCalls).toHaveLength(1);
+    expect(fake.correctionCalls).toHaveLength(0);
+  });
+
+  test('restores PLANNED and prior itinerary when correction fails', async () => {
+    const fake = createFakeGeminiAdapter({
+      replanResponseText: JSON.stringify({ destination: '', days: [] }),
+      correctionError: new Error('correction provider secret details'),
+    });
+    app = createApp({ geminiAdapter: fake });
+    const agent = await agentFor('correction-failure@example.com');
+    const id = await plannedTrip(agent);
+
+    const res = await agent
+      .post(`/api/trips/${id}/replan-itinerary`)
+      .send({ replanInstruction: 'Add more museums' });
+    const stored = await Trip.findById(id).lean();
+
+    expect(res.status).toBe(502);
+    expect(res.body.error.message).not.toContain('correction provider secret');
+    expect(fake.replanCalls).toHaveLength(1);
+    expect(fake.correctionCalls).toHaveLength(1);
+    expect(stored).toMatchObject({ status: 'PLANNED', itineraryStatus: 'CURRENT', currentItinerary: priorItinerary });
+  });
+
+  test('returns a friendly 429 when Gemini itself is rate-limited, and reverts the trip', async () => {
+    const fake = createFakeGeminiAdapter({
+      replanError: new GeminiRequestError('rate limited', 'RATE_LIMITED'),
+    });
+    app = createApp({ geminiAdapter: fake });
+    const agent = await agentFor('rate-limited@example.com');
+    const id = await plannedTrip(agent);
+
+    const res = await agent
+      .post(`/api/trips/${id}/replan-itinerary`)
+      .send({ replanInstruction: 'Add more museums' });
+    const trip = await Trip.findById(id).lean();
+
+    expect(res.status).toBe(429);
+    expect(res.body).toEqual({
+      error: { message: 'The AI service is busy right now. Please try again shortly.', code: 'AI_PROVIDER_BUSY' },
+    });
+    expect(trip.status).toBe('PLANNED');
+  });
+
+  test('returns a safe 502 when Gemini is unavailable after retry', async () => {
+    const fake = createFakeGeminiAdapter({
+      replanError: new GeminiRequestError('unavailable', 'PROVIDER_UNAVAILABLE'),
+    });
+    app = createApp({ geminiAdapter: fake });
+    const agent = await agentFor('unavailable@example.com');
+    const id = await plannedTrip(agent);
+
+    const res = await agent
+      .post(`/api/trips/${id}/replan-itinerary`)
+      .send({ replanInstruction: 'Add more museums' });
+
+    expect(res.status).toBe(502);
+    expect(res.body.error.code).toBe('ITINERARY_REPLAN_FAILED');
+    expect(res.body.error.message).not.toMatch(/PROVIDER|Gemini|provider/i);
+  });
+
+  test('rejects a second request while the first is replanning', async () => {
+    let release;
+    let resolveStarted;
+    const deferred = new Promise((resolve) => { release = resolve; });
+    const started = new Promise((resolve) => { resolveStarted = resolve; });
+    const fake = createFakeGeminiAdapter({
+      replanResponse: () => {
+        resolveStarted();
+        return deferred;
+      },
+    });
+    app = createApp({ geminiAdapter: fake });
+    const agent = await agentFor('deferred@example.com');
+    const id = await plannedTrip(agent);
+    const observer = await agentFor('deferred@example.com');
+    const first = agent.post(`/api/trips/${id}/replan-itinerary`).send({ replanInstruction: 'Add more museums' });
+    first.then(() => {}, () => {});
+
+    await started;
+    const during = await observer.get(`/api/trips/${id}`);
+    const duplicate = await observer
+      .post(`/api/trips/${id}/replan-itinerary`)
+      .send({ replanInstruction: 'Add more museums' });
+
+    expect(during.body.trip.status).toBe('REPLANNING');
+    expect(during.body.trip.startedAt).toEqual(expect.any(String));
+    expect(duplicate.status).toBe(409);
+    release(JSON.stringify(validItinerary));
+    await first;
+  });
+});

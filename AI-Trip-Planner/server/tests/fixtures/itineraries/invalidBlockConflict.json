@@ -1,0 +1,40 @@
+{
+  "destination": "Rome, Italy",
+  "days": [
+    {
+      "dayNumber": 1,
+      "date": "2026-09-01",
+      "title": "Day 1",
+      "summary": "Includes blocked museum.",
+      "activities": [
+        {
+          "type": "BREAKFAST",
+          "title": "Café Breakfast",
+          "description": "Breakfast",
+          "location": "Rome",
+          "period": "MORNING",
+          "durationMinutes": 45,
+          "transferBeforeMinutes": 0
+        },
+        {
+          "type": "MUSEUM",
+          "title": "Vatican Museum",
+          "description": "Museum visit which is blocked",
+          "location": "Vatican City",
+          "period": "AFTERNOON",
+          "durationMinutes": 180,
+          "transferBeforeMinutes": 20
+        },
+        {
+          "type": "DINNER",
+          "title": "Dinner",
+          "description": "Dinner",
+          "location": "Rome",
+          "period": "EVENING",
+          "durationMinutes": 90,
+          "transferBeforeMinutes": 15
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "destination": "Rome, Italy",
+  "days": [
+    {
+      "dayNumber": 1,
+      "date": "2026-09-01",
+      "title": "Day 1",
+      "summary": "Only one day provided for a 3-day trip.",
+      "activities": [
+        {
+          "type": "CULTURE",
+          "title": "Colosseum",
+          "description": "Visit",
+          "location": "Rome",
+          "period": "MORNING",
+          "durationMinutes": 120,
+          "transferBeforeMinutes": 0
+        }
+      ]
+    }
+  ]
+}

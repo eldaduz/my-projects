@@ -1,0 +1,22 @@
+{
+  "destination": "Rome, Italy",
+  "days": [
+    {
+      "dayNumber": 1,
+      "date": "2026-09-01",
+      "title": "Day 1",
+      "summary": "Invalid enums day.",
+      "activities": [
+        {
+          "type": "UNKNOWN_ACTIVITY_TYPE",
+          "title": "Invalid Type Activity",
+          "description": "Description",
+          "location": "Location",
+          "period": "MIDNIGHT_INVALID",
+          "durationMinutes": 60,
+          "transferBeforeMinutes": 0
+        }
+      ]
+    }
+  ]
+}

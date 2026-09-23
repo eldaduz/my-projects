@@ -1,3 +1,20 @@
+// ╔══════════════════════════════════════════════════════════════════╗
+// ║ DESTINATION AUTOCOMPLETE — Search-as-you-type with debounce     ║
+// ║                                                                  ║
+// ║ PATTERN: Debounce — waits 300ms after the LAST keystroke before ║
+// ║ calling the API. Without this, every single character typed     ║
+// ║ would trigger an API call (wasting bandwidth + rate limits).    ║
+// ║                                                                  ║
+// ║ PATTERN: AbortController for race condition prevention          ║
+// ║   - Each new search aborts the previous in-flight request       ║
+// ║   - Prevents stale results from overwriting fresher ones        ║
+// ║   - Example: user types "Par" → request fires → user adds "is" ║
+// ║     → "Paris" request fires → "Par" response arrives LATE →    ║
+// ║     without abort, "Par" results would overwrite "Paris" ones   ║
+// ║                                                                  ║
+// ║ ACCESSIBILITY: Arrow keys navigate the suggestion list,         ║
+// ║ Escape closes it. This follows WAI-ARIA combobox patterns.     ║
+// ╚══════════════════════════════════════════════════════════════════╝
 import { useEffect, useRef, useState } from 'react';
 import { apiClient } from '../api/apiClient';
 

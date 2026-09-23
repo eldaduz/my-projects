@@ -1,3 +1,21 @@
+// ╔══════════════════════════════════════════════════════════════════╗
+// ║ TRAVELERS CONTROLLER — CRUD for reusable traveler profiles       ║
+// ║                                                                  ║
+// ║ CRITICAL REUSE — THREE functions from this file are EXPORTED     ║
+// ║ and reused by trips.controller.js:                               ║
+// ║   • readProfileFields() → trip-only travelers (F08.1)            ║
+// ║   • readPreferences()   → trip-level preference overrides (F09)  ║
+// ║   • readFreeText()      → trip-level hardConstraints & notes      ║
+// ║                                                                  ║
+// ║ TEACHER Q: "Is readProfileFields reused elsewhere?" → YES!      ║
+// ║ It's used both here (for reusable profiles) AND in               ║
+// ║ trips.controller.js (for trip-only travelers).                   ║
+// ║                                                                  ║
+// ║ PATTERN: Three-way value semantics for optional fields:          ║
+// ║   undefined → "not supplied" (leave untouched on update)         ║
+// ║   null      → "clear this field" (set to null/remove)            ║
+// ║   value     → "set to this value"                               ║
+// ╚══════════════════════════════════════════════════════════════════╝
 import {
   TravelerProfile,
   AGE_GROUPS,
@@ -24,6 +42,11 @@ function readProfileName(body) {
 
 // travelerName/ageGroup/etc are optional: `undefined` means "field not supplied"
 // (left untouched on update), while `null` means "clear this field".
+// STUDY NOTE: Three-way semantics example:
+// If body.travelerName is undefined → user didn't send the field → leave it alone
+// If body.travelerName is null or "" → user wants to clear it → return null
+// If body.travelerName is a valid string → user wants to set it → return trimmed value
+// This pattern is REPEATED in readAgeGroup, readPace, readWalkingTolerance, etc.
 function readTravelerName(body) {
   if (body?.travelerName === undefined) return undefined;
   const travelerName = typeof body.travelerName === 'string' ? body.travelerName.trim() : '';
@@ -73,6 +96,11 @@ function readIndoorOutdoorTendency(body) {
   return body.indoorOutdoorTendency;
 }
 
+// STUDY NOTE: readFreeText is a GENERIC validator for any free-text field.
+// It's NOT specific to travelers — it works for ANY field name.
+// REUSE: Used here for foodCuisineInterests, dietaryRequirements, hardConstraints,
+// travelStyleNote. ALSO exported and reused in trips.controller.js for
+// trip-level hardConstraints and notes.
 function readFreeText(body, field, code, maxLength = MAX_FREE_TEXT_LENGTH) {
   if (body?.[field] === undefined) return undefined;
   if (body[field] === null || body[field] === '') return null;
@@ -146,11 +174,11 @@ function readProfileFields(body) {
   };
 }
 
-// Exported for reuse by trips.controller.js: readProfileFields (F08.1) —
-// Trip-only travelers use the same planning-relevant fields as reusable-
-// profile snapshots. readPreferences (F09) — trip-level preference overrides
-// use the same Neutral/Interested/Avoid/Block validation. readFreeText (F09)
-// — trip-level hardConstraints/notes reuse the same trim/bounds validation.
+// STUDY NOTE: These THREE exports are the KEY REUSE points of this file.
+// trips.controller.js imports them for trip-only travelers and trip-level overrides.
+// TEACHER Q: "Why export these instead of duplicating the validation?"
+// → Because trip-only travelers need the EXACT SAME validation rules as
+// reusable profiles. Duplicating would mean fixing bugs in two places.
 export { readProfileFields, readPreferences, readFreeText };
 
 export async function createProfile(req, res, next) {

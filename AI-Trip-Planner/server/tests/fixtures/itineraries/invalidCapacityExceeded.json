@@ -1,0 +1,67 @@
+{
+  "destination": "Paris, France",
+  "days": [
+    {
+      "dayNumber": 1,
+      "date": "2026-09-01",
+      "title": "Overloaded Day",
+      "summary": "Too many activities for a relaxed pace.",
+      "activities": [
+        {
+          "type": "BREAKFAST",
+          "title": "Breakfast",
+          "description": "Breakfast",
+          "location": "Paris",
+          "period": "MORNING",
+          "durationMinutes": 60,
+          "transferBeforeMinutes": 0
+        },
+        {
+          "type": "MUSEUM",
+          "title": "Louvre",
+          "description": "Art",
+          "location": "Paris",
+          "period": "MORNING",
+          "durationMinutes": 180,
+          "transferBeforeMinutes": 30
+        },
+        {
+          "type": "LUNCH",
+          "title": "Lunch",
+          "description": "Food",
+          "location": "Paris",
+          "period": "AFTERNOON",
+          "durationMinutes": 60,
+          "transferBeforeMinutes": 30
+        },
+        {
+          "type": "CULTURE",
+          "title": "Notre Dame",
+          "description": "Cathedral",
+          "location": "Paris",
+          "period": "AFTERNOON",
+          "durationMinutes": 90,
+          "transferBeforeMinutes": 30
+        },
+        {
+          "type": "SHOPPING",
+          "title": "Champs Elysees",
+          "description": "Shopping",
+          "location": "Paris",
+          "period": "EVENING",
+          "durationMinutes": 120,
+          "transferBeforeMinutes": 30
+        },
+        {
+          "type": "DINNER",
+          "title": "Dinner",
+          "description": "Dinner",
+          "location": "Paris",
+          "period": "EVENING",
+          "durationMinutes": 90,
+          "transferBeforeMinutes": 20
+        }
+      ]
+    }
+  ]
+}

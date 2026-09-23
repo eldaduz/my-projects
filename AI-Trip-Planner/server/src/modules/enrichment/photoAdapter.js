@@ -1,3 +1,19 @@
+// ╔══════════════════════════════════════════════════════════════════╗
+// ║ PHOTO ADAPTER — Destination photos with fallback chain          ║
+// ║                                                                  ║
+// ║ PATTERN: Fallback Chain (Pexels → Wikipedia)                    ║
+// ║   1. Try Pexels API first (high quality photos)                 ║
+// ║   2. If Pexels fails or returns nothing → try Wikipedia         ║
+// ║   3. If both fail → return null (UI hides photo)                ║
+// ║                                                                  ║
+// ║ PATTERN: Adapter Factory — createPhotoAdapter() returns an      ║
+// ║ object with one method: getPhoto(query). Injected into the     ║
+// ║ enrichment controller just like placesAdapter and weatherAdapter.║
+// ║                                                                  ║
+// ║ TEACHER Q: "Why use a factory instead of exporting functions?"  ║
+// ║ → The factory captures config (apiKey, timeout) in closure.     ║
+// ║ Each call to createPhotoAdapter() can have different config.    ║
+// ╚══════════════════════════════════════════════════════════════════╝
 const PEXELS_URL = 'https://api.pexels.com/v1/search';
 const WIKIPEDIA_SUMMARY_URL = 'https://en.wikipedia.org/api/rest_v1/page/summary';
 const DEFAULT_TIMEOUT_MS = 5000;

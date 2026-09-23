@@ -1,3 +1,19 @@
+// ╔══════════════════════════════════════════════════════════════════╗
+// ║ ENRICHMENT CONTROLLER — Autocomplete, Weather, Photos           ║
+// ║                                                                  ║
+// ║ PATTERN: Factory Function — createEnrichmentControllers()       ║
+// ║ receives its adapters as parameters (dependency injection).     ║
+// ║ Same pattern as createApp() and createTripsRouter().            ║
+// ║                                                                  ║
+// ║ THREE ENDPOINTS:                                                 ║
+// ║   GET /autocomplete → Photon (free geocoding API)               ║
+// ║   GET /weather       → Open-Meteo (free weather API)            ║
+// ║   GET /photo         → Pexels → Wikipedia fallback              ║
+// ║                                                                  ║
+// ║ GRACEFUL DEGRADATION: If any external API fails, we return      ║
+// ║ { available: false } instead of throwing 500. The UI just       ║
+// ║ hides the weather/photo widget. The trip still works.           ║
+// ╚══════════════════════════════════════════════════════════════════╝
 // server/src/modules/enrichment/enrichment.controller.js
 import { HttpError } from '../../middleware/errorHandler.js';
 

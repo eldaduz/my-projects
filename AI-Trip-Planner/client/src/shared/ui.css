@@ -578,7 +578,7 @@ fieldset > div {
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-sm);
   overflow: hidden;
-  cursor: pointer;
+  cursor: default;
   text-align: left;
   font-family: inherit;
   transition:
@@ -592,8 +592,34 @@ fieldset > div {
   transform: translateY(-3px);
 }
 
-.trip-card h2 {
+.trip-card__open {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  gap: var(--space-3);
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+}
+
+.trip-card__open:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: var(--space-2);
+}
+
+.trip-card__delete {
+  align-self: flex-end;
+}
+
+.trip-card__title {
+  display: block;
   font-size: var(--text-md);
+  font-weight: var(--weight-bold);
   margin-bottom: 2px;
 }
 

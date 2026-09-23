@@ -1,0 +1,75 @@
+{
+  "destination": "Paris, France",
+  "days": [
+    {
+      "dayNumber": 1,
+      "date": "2026-09-01",
+      "title": "Arrival and Latin Quarter Stroll",
+      "summary": "Gentle morning arrival followed by a relaxed exploration of the Latin Quarter.",
+      "activities": [
+        {
+          "type": "BREAKFAST",
+          "title": "Café de Flore",
+          "description": "Croissants and café au lait on the terrace.",
+          "location": "6th Arrondissement",
+          "period": "MORNING",
+          "durationMinutes": 60,
+          "transferBeforeMinutes": 0
+        },
+        {
+          "type": "CULTURE",
+          "title": "Latin Quarter Walk",
+          "description": "Leisurely walk through historic cobblestone streets.",
+          "location": "5th Arrondissement",
+          "period": "AFTERNOON",
+          "durationMinutes": 120,
+          "transferBeforeMinutes": 20
+        },
+        {
+          "type": "DINNER",
+          "title": "Bistrot Paul Bert",
+          "description": "Traditional French bistro dinner.",
+          "location": "11th Arrondissement",
+          "period": "EVENING",
+          "durationMinutes": 90,
+          "transferBeforeMinutes": 30
+        }
+      ]
+    },
+    {
+      "dayNumber": 2,
+      "date": "2026-09-02",
+      "title": "Gardens and Seine Cruise",
+      "summary": "Relaxed day visiting Luxembourg Gardens and an evening Seine cruise.",
+      "activities": [
+        {
+          "type": "NATURE",
+          "title": "Jardin du Luxembourg",
+          "description": "Stroll around the palace fountains and tree-lined promenades.",
+          "location": "6th Arrondissement",
+          "period": "MORNING",
+          "durationMinutes": 90,
+          "transferBeforeMinutes": 15
+        },
+        {
+          "type": "FREE_TIME",
+          "title": "Afternoon Reading & Café Time",
+          "description": "Unstructured leisure time by the Seine.",
+          "location": "Saint-Germain",
+          "period": "AFTERNOON",
+          "durationMinutes": 120,
+          "transferBeforeMinutes": 10
+        },
+        {
+          "type": "TOUR",
+          "title": "Seine River Evening Cruise",
+          "description": "Illuminated boat tour past the Eiffel Tower and Notre-Dame.",
+          "location": "Pont Neuf",
+          "period": "EVENING",
+          "durationMinutes": 75,
+          "transferBeforeMinutes": 25
+        }
+      ]
+    }
+  ]
+}

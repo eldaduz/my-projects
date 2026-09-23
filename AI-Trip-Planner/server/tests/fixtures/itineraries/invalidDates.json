@@ -1,0 +1,39 @@
+{
+  "destination": "Rome, Italy",
+  "days": [
+    {
+      "dayNumber": 1,
+      "date": "2026-09-01",
+      "title": "Day 1",
+      "summary": "First day.",
+      "activities": [
+        {
+          "type": "CULTURE",
+          "title": "Colosseum",
+          "description": "Visit",
+          "location": "Rome",
+          "period": "MORNING",
+          "durationMinutes": 120,
+          "transferBeforeMinutes": 0
+        }
+      ]
+    },
+    {
+      "dayNumber": 2,
+      "date": "2026-09-05",
+      "title": "Day 2",
+      "summary": "Date skipped to Sep 5 instead of Sep 2.",
+      "activities": [
+        {
+          "type": "MUSEUM",
+          "title": "Vatican",
+          "description": "Visit",
+          "location": "Vatican",
+          "period": "MORNING",
+          "durationMinutes": 120,
+          "transferBeforeMinutes": 0
+        }
+      ]
+    }
+  ]
+}

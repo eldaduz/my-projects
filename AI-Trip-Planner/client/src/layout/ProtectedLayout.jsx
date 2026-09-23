@@ -1,3 +1,21 @@
+// ╔══════════════════════════════════════════════════════════════════╗
+// ║ PROTECTED LAYOUT — Auth gate + shared navigation                ║
+// ║                                                                  ║
+// ║ PATTERN: React Router "Layout Route"                             ║
+// ║   In main.jsx, this component wraps all protected routes.       ║
+// ║   <Outlet /> renders the matched child route (Trips, Wizard,    ║
+// ║   TravelerProfiles). This avoids repeating the nav bar in       ║
+// ║   every page component.                                         ║
+// ║                                                                  ║
+// ║ AUTH FLOW:                                                       ║
+// ║   RequireAuth checks auth status:                                ║
+// ║     'loading' → shows spinner                                   ║
+// ║     'unauthenticated' → redirects to /login (via fallback prop) ║
+// ║     'authenticated' → renders AppNav + <Outlet />               ║
+// ║                                                                  ║
+// ║ REUSE: RequireAuth and useAuth are shared components used in    ║
+// ║ multiple places across the auth module.                         ║
+// ╚══════════════════════════════════════════════════════════════════╝
 import { Link, Navigate, Outlet, useLocation } from 'react-router-dom';
 import { RequireAuth } from '../auth/RequireAuth';
 import { useAuth } from '../auth/useAuth';

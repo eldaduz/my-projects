@@ -1,0 +1,31 @@
+{
+  "destination": "Rome, Italy",
+  "days": [
+    {
+      "dayNumber": 1,
+      "date": "2026-09-01",
+      "title": "Day 1",
+      "summary": "Bad duration day.",
+      "activities": [
+        {
+          "type": "CULTURE",
+          "title": "Negative duration",
+          "description": "Description",
+          "location": "Location",
+          "period": "MORNING",
+          "durationMinutes": -30,
+          "transferBeforeMinutes": 0
+        },
+        {
+          "type": "MUSEUM",
+          "title": "Over 12 hours activity",
+          "description": "Description",
+          "location": "Location",
+          "period": "AFTERNOON",
+          "durationMinutes": 900,
+          "transferBeforeMinutes": 300
+        }
+      ]
+    }
+  ]
+}

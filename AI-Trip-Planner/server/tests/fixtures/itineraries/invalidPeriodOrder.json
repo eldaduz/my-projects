@@ -1,0 +1,31 @@
+{
+  "destination": "Rome, Italy",
+  "days": [
+    {
+      "dayNumber": 1,
+      "date": "2026-09-01",
+      "title": "Day 1",
+      "summary": "Out of order day.",
+      "activities": [
+        {
+          "type": "DINNER",
+          "title": "Evening Dinner First",
+          "description": "Description",
+          "location": "Location",
+          "period": "EVENING",
+          "durationMinutes": 60,
+          "transferBeforeMinutes": 0
+        },
+        {
+          "type": "BREAKFAST",
+          "title": "Morning Breakfast Second",
+          "description": "Description",
+          "location": "Location",
+          "period": "MORNING",
+          "durationMinutes": 45,
+          "transferBeforeMinutes": 10
+        }
+      ]
+    }
+  ]
+}

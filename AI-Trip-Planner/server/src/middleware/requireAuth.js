@@ -1,3 +1,20 @@
+// ╔══════════════════════════════════════════════════════════════════╗
+// ║ AUTH MIDDLEWARE — Protects all routes that need a logged-in user ║
+// ║                                                                  ║
+// ║ HOW IT WORKS:                                                    ║
+// ║   1. Reads JWT token from the httpOnly cookie                   ║
+// ║   2. Verifies the token signature (using verifySessionToken)    ║
+// ║   3. Extracts userId from the token payload (sub field)         ║
+// ║   4. Sets req.userId for downstream controllers to use          ║
+// ║   5. If token is missing/invalid → throws 401 Unauthorized     ║
+// ║                                                                  ║
+// ║ REUSE: Used in EVERY protected route module:                    ║
+// ║   - auth.routes.js (GET /me, POST /logout)                      ║
+// ║   - travelers.routes.js (all CRUD routes)                       ║
+// ║   - trips.routes.js (all CRUD + AI routes)                      ║
+// ║   - enrichment.routes.js (autocomplete, weather, photo)         ║
+// ╚══════════════════════════════════════════════════════════════════╝
+
 import { User } from '../modules/auth/user.model.js';
 import { HttpError } from './errorHandler.js';
 import { verifySessionToken, SESSION_COOKIE_NAME } from '../modules/auth/session.js';

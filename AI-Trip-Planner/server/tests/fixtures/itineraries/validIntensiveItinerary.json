@@ -1,0 +1,85 @@
+{
+  "destination": "Tokyo, Japan",
+  "days": [
+    {
+      "dayNumber": 1,
+      "date": "2026-09-01",
+      "title": "East Tokyo Heritage & Pop Culture",
+      "summary": "Full day covering Asakusa, Akihabara, Ueno, and nighttime Shibuya.",
+      "activities": [
+        {
+          "type": "BREAKFAST",
+          "title": "Tsukiji Outer Market Tasting",
+          "description": "Tamagoyaki, fresh sashimi skewers, and matcha.",
+          "location": "Tsukiji",
+          "period": "MORNING",
+          "durationMinutes": 60,
+          "transferBeforeMinutes": 0
+        },
+        {
+          "type": "CULTURE",
+          "title": "Senso-ji Temple & Nakamise-dori",
+          "description": "Historic temple gates and traditional stalls.",
+          "location": "Asakusa",
+          "period": "MORNING",
+          "durationMinutes": 75,
+          "transferBeforeMinutes": 20
+        },
+        {
+          "type": "MUSEUM",
+          "title": "Tokyo National Museum",
+          "description": "Samurai armor, ancient scrolls, and Buddhist sculptures.",
+          "location": "Ueno Park",
+          "period": "MORNING",
+          "durationMinutes": 90,
+          "transferBeforeMinutes": 15
+        },
+        {
+          "type": "LUNCH",
+          "title": "Ramen Street",
+          "description": "Tonkotsu and tsukemen bowls.",
+          "location": "Tokyo Station",
+          "period": "AFTERNOON",
+          "durationMinutes": 45,
+          "transferBeforeMinutes": 20
+        },
+        {
+          "type": "SHOPPING",
+          "title": "Akihabara Electric Town",
+          "description": "Electronics, retro games, and anime figures.",
+          "location": "Akihabara",
+          "period": "AFTERNOON",
+          "durationMinutes": 90,
+          "transferBeforeMinutes": 15
+        },
+        {
+          "type": "ATTRACTION",
+          "title": "Shibuya Sky Observation Deck",
+          "description": "360-degree panoramic sunset views over Tokyo.",
+          "location": "Shibuya Scramble Square",
+          "period": "AFTERNOON",
+          "durationMinutes": 60,
+          "transferBeforeMinutes": 25
+        },
+        {
+          "type": "DINNER",
+          "title": "Izakaya Feast in Nonbei Yokocho",
+          "description": "Yakitori skewers, gyoza, and Japanese beer.",
+          "location": "Shibuya",
+          "period": "EVENING",
+          "durationMinutes": 75,
+          "transferBeforeMinutes": 10
+        },
+        {
+          "type": "NIGHTLIFE",
+          "title": "Shinjuku Golden Gai & Omoide Yokocho",
+          "description": "Exploring tiny atmospheric bars in historic alleys.",
+          "location": "Shinjuku",
+          "period": "EVENING",
+          "durationMinutes": 90,
+          "transferBeforeMinutes": 20
+        }
+      ]
+    }
+  ]
+}

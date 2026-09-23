@@ -1,0 +1,111 @@
+{
+  "destination": "Rome, Italy",
+  "days": [
+    {
+      "dayNumber": 1,
+      "date": "2026-09-01",
+      "title": "Ancient Rome Highlights",
+      "summary": "Exploring the Colosseum, Roman Forum, and an evening in Monti.",
+      "activities": [
+        {
+          "type": "BREAKFAST",
+          "title": "Pasticceria Regoli",
+          "description": "Espresso and fresh maritozzo.",
+          "location": "Via dello Statuto",
+          "period": "MORNING",
+          "durationMinutes": 45,
+          "transferBeforeMinutes": 0
+        },
+        {
+          "type": "HISTORY",
+          "title": "Colosseum & Roman Forum Tour",
+          "description": "Guided exploration of the gladiatorial arena and ancient ruins.",
+          "location": "Piazza del Colosseo",
+          "period": "MORNING",
+          "durationMinutes": 180,
+          "transferBeforeMinutes": 20
+        },
+        {
+          "type": "LUNCH",
+          "title": "Trattoria Da Enzo al 29",
+          "description": "Cacio e pepe and carbonara.",
+          "location": "Trastevere",
+          "period": "AFTERNOON",
+          "durationMinutes": 75,
+          "transferBeforeMinutes": 25
+        },
+        {
+          "type": "ARCHITECTURE",
+          "title": "Pantheon Visit",
+          "description": "Marveling at the ancient Roman dome and oculus.",
+          "location": "Piazza della Rotonda",
+          "period": "AFTERNOON",
+          "durationMinutes": 60,
+          "transferBeforeMinutes": 15
+        },
+        {
+          "type": "DINNER",
+          "title": "Dinner in Monti",
+          "description": "Roman pizza and local wine.",
+          "location": "Rione Monti",
+          "period": "EVENING",
+          "durationMinutes": 90,
+          "transferBeforeMinutes": 20
+        }
+      ]
+    },
+    {
+      "dayNumber": 2,
+      "date": "2026-09-02",
+      "title": "Vatican City & Trastevere",
+      "summary": "St. Peter's Basilica, Vatican Museums, and evening stroll.",
+      "activities": [
+        {
+          "type": "BREAKFAST",
+          "title": "Caffè Sant'Eustachio",
+          "description": "Famous wood-roasted espresso and pastries.",
+          "location": "Piazza di S. Eustachio",
+          "period": "MORNING",
+          "durationMinutes": 45,
+          "transferBeforeMinutes": 0
+        },
+        {
+          "type": "MUSEUM",
+          "title": "Vatican Museums & Sistine Chapel",
+          "description": "Masterpieces of Renaissance art and Michelangelo's ceiling.",
+          "location": "Vatican City",
+          "period": "MORNING",
+          "durationMinutes": 180,
+          "transferBeforeMinutes": 30
+        },
+        {
+          "type": "LUNCH",
+          "title": "Panificio Bonci",
+          "description": "Artisanal Roman pizza al taglio.",
+          "location": "Prati",
+          "period": "AFTERNOON",
+          "durationMinutes": 45,
+          "transferBeforeMinutes": 15
+        },
+        {
+          "type": "CULTURE",
+          "title": "St. Peter's Square & Basilica",
+          "description": "Viewing Bernini's colonnade and Michelangelo's Pietà.",
+          "location": "Piazza San Pietro",
+          "period": "AFTERNOON",
+          "durationMinutes": 90,
+          "transferBeforeMinutes": 15
+        },
+        {
+          "type": "DINNER",
+          "title": "Trastevere Evening Dining",
+          "description": "Lively outdoor dinner in Piazza Santa Maria.",
+          "location": "Trastevere",
+          "period": "EVENING",
+          "durationMinutes": 90,
+          "transferBeforeMinutes": 25
+        }
+      ]
+    }
+  ]
+}

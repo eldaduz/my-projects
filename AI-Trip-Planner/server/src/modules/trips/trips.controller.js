@@ -689,6 +689,9 @@ export async function updateTrip(req, res, next) {
 
 export async function deleteTrip(req, res, next) {
   try {
+    if (['GENERATING', 'REPLANNING'].includes(req.trip.status)) {
+      throw new HttpError(409, 'This trip is being updated. Please try again shortly.', 'TRIP_DELETE_IN_PROGRESS');
+    }
     await req.trip.deleteOne();
     res.status(204).end();
   } catch (err) {

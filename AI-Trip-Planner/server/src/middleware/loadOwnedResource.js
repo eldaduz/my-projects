@@ -1,3 +1,21 @@
+// ╔══════════════════════════════════════════════════════════════════╗
+// ║ GENERIC RESOURCE OWNERSHIP MIDDLEWARE                             ║
+// ║                                                                  ║
+// ║ PATTERN: Higher-Order Function — loadOwnedResource() is NOT      ║
+// ║ middleware itself. It RETURNS a middleware function. This lets    ║
+// ║ us configure it for different models.                            ║
+// ║                                                                  ║
+// ║ REUSE: Used in TWO route files:                                  ║
+// ║   - travelers.routes.js → loadOwnedResource(TravelerProfile,    ║
+// ║                            { resourceKey: 'profile' })           ║
+// ║   - trips.routes.js     → loadOwnedResource(Trip,               ║
+// ║                            { resourceKey: 'trip' })              ║
+// ║                                                                  ║
+// ║ TEACHER Q: "Why return 404 instead of 403 for other users'       ║
+// ║ resources?" → Security: returning 403 would confirm the ID       ║
+// ║ exists, leaking information. 404 hides whether it's "not yours" ║
+// ║ or "doesn't exist" — no information leak.                       ║
+// ╚══════════════════════════════════════════════════════════════════╝
 import mongoose from 'mongoose';
 import { HttpError } from './errorHandler.js';
 

@@ -1,3 +1,17 @@
+// ╔══════════════════════════════════════════════════════════════════╗
+// ║ CLIENT ENTRY POINT — React app root                             ║
+// ║                                                                  ║
+// ║ STRUCTURE (top to bottom):                                       ║
+// ║   StrictMode → AuthProvider → BrowserRouter → Routes             ║
+// ║                                                                  ║
+// ║ PATTERN: Nested Routes with Layout component                     ║
+// ║   - /login and /register are PUBLIC (no auth needed)             ║
+// ║   - Everything inside <ProtectedLayout> requires authentication  ║
+// ║   - ProtectedLayout uses <Outlet> to render child routes         ║
+// ║                                                                  ║
+// ║ TEACHER Q: "What does <Navigate to='/trips' replace /> do?"      ║
+// ║ → It's a redirect: visiting '/' immediately sends you to '/trips'║
+// ╚══════════════════════════════════════════════════════════════════╝
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';

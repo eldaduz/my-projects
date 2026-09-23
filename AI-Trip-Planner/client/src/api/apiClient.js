@@ -1,7 +1,31 @@
+// ╔══════════════════════════════════════════════════════════════════╗
+// ║ API CLIENT — Centralized HTTP wrapper for all server calls       ║
+// ║                                                                  ║
+// ║ REUSE: This is used by EVERY page and component that talks to   ║
+// ║ the server: AuthContext, LoginPage, RegisterPage, TripsPage,    ║
+// ║ TripWizardPage, TravelerProfilesPage, DestinationAutocomplete,  ║
+// ║ DestinationPhoto, TripWeather, ItineraryView.                   ║
+// ║                                                                  ║
+// ║ PATTERN: Wrapper/Facade — hides fetch() complexity behind a     ║
+// ║ simple interface: apiClient.get(), .post(), .patch(), .delete() ║
+// ║                                                                  ║
+// ║ WHY NOT USE FETCH DIRECTLY? Because:                             ║
+// ║   1. credentials: 'include' (cookies) must be set every time    ║
+// ║   2. JSON headers must be set for POST/PATCH                     ║
+// ║   3. Error parsing (extracting error.message from response body) ║
+// ║   4. AbortError handling (cleanup on unmount)                    ║
+// ║ Without this wrapper, ALL of that would be duplicated in 10+     ║
+// ║ files. DRY principle.                                            ║
+// ╚══════════════════════════════════════════════════════════════════╝
 const API_BASE_URL = '/api'
 
 const DEFAULT_ERROR_MESSAGE = 'Something went wrong. Please try again.'
 
+// STUDY NOTE: Custom Error class for API errors.
+// TEACHER Q: "Why a custom class instead of just new Error()?" → Because
+// we need to carry `status` (HTTP code) and `code` (machine-readable string
+// like 'NETWORK_ERROR') alongside the message. Components use these to
+// show different UI for different error types.
 export class ApiError extends Error {
   constructor(message, { status, code } = {}) {
     super(message || DEFAULT_ERROR_MESSAGE)
@@ -27,12 +51,19 @@ async function request(path, { method = 'GET', body, headers, signal } = {}) {
   try {
     response = await fetch(`${API_BASE_URL}${path}`, {
       method,
+      // STUDY NOTE: credentials: 'include' tells the browser to send cookies
+      // with the request. Without this, our httpOnly JWT cookie won't be sent
+      // and every protected route would return 401 Unauthorized.
       credentials: 'include',
       headers: {
+        // STUDY NOTE: Only set Content-Type for requests with a body
         ...(body !== undefined ? { 'Content-Type': 'application/json' } : {}),
         ...headers,
       },
       body: body !== undefined ? JSON.stringify(body) : undefined,
+      // STUDY NOTE: signal allows the caller to cancel in-flight requests.
+      // Used with AbortController in React useEffect cleanup to prevent
+      // updating state on unmounted components.
       signal,
     })
   } catch (err) {

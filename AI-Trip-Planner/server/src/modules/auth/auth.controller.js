@@ -1,16 +1,39 @@
+// ╔══════════════════════════════════════════════════════════════════╗
+// ║ AUTH CONTROLLER — Register, Login, Logout, Get Current User      ║
+// ║                                                                  ║
+// ║ KEY CONCEPTS:                                                    ║
+// ║   - bcrypt: hashes passwords (12 salt rounds = intentionally     ║
+// ║     slow to prevent brute-force attacks)                         ║
+// ║   - DUMMY_HASH: timing attack prevention (see below)             ║
+// ║   - JWT cookie: session token stored in httpOnly cookie          ║
+// ║     (not localStorage) for XSS protection                       ║
+// ║                                                                  ║
+// ║ REUSE: HttpError from errorHandler.js (shared across ALL modules)║
+// ║ REUSE: session.js functions used here and in requireAuth.js      ║
+// ╚══════════════════════════════════════════════════════════════════╝
 import bcrypt from 'bcrypt';
 import { User } from './user.model.js';
 import { HttpError } from '../../middleware/errorHandler.js';
 import { signSessionToken, setSessionCookie, clearSessionCookie } from './session.js';
 
+// STUDY NOTE: 12 salt rounds makes hashing intentionally slow (~250ms).
+// This is a FEATURE, not a bug — it makes brute-force attacks impractical.
 const SALT_ROUNDS = 12;
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MAX_EMAIL_LENGTH = 254; // RFC 5321
 const MIN_PASSWORD_LENGTH = 8;
+// STUDY NOTE: bcrypt silently truncates passwords beyond 72 characters.
+// We reject them explicitly so the user knows their full password matters.
 const MAX_PASSWORD_LENGTH = 72; // bcrypt silently truncates beyond this
 
-// Compared against when no user is found, so a login attempt takes roughly
-// the same time either way and can't be used to enumerate registered emails.
+// STUDY NOTE: TIMING ATTACK PREVENTION.
+// When a user tries to login with a non-existent email, we STILL run
+// bcrypt.compare against this dummy hash. Why? Without it, "email not found"
+// returns instantly, but "wrong password" takes ~250ms (bcrypt is slow).
+// An attacker could measure response times to discover which emails exist.
+// By always running bcrypt.compare, both cases take the same time.
+// TEACHER Q: "What is a timing attack?" → An attack that uses response
+// time differences to leak information about the system's state.
 const DUMMY_HASH = bcrypt.hashSync('not-a-real-password', SALT_ROUNDS);
 
 export async function registerUser(req, res, next) {

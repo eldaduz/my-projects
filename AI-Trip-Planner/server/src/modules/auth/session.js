@@ -1,3 +1,20 @@
+// ╔══════════════════════════════════════════════════════════════════╗
+// ║ SESSION MANAGEMENT — JWT tokens stored in httpOnly cookies      ║
+// ║                                                                  ║
+// ║ WHY COOKIES INSTEAD OF LOCALSTORAGE?                            ║
+// ║   - httpOnly: JavaScript can't read the token (XSS protection)  ║
+// ║   - sameSite: 'lax' prevents CSRF attacks                       ║
+// ║   - secure: true (production) enforces HTTPS-only               ║
+// ║                                                                  ║
+// ║ REUSE: signSessionToken is used in auth.controller (login),     ║
+// ║ setSessionCookie is used in auth.controller (login response),   ║
+// ║ verifySessionToken is used in requireAuth middleware,            ║
+// ║ clearSessionCookie is used in auth.controller (logout).         ║
+// ║                                                                  ║
+// ║ TEACHER Q: "What is a JWT?" → A signed JSON payload containing  ║
+// ║ { sub: userId }. The server signs it with a secret key. On each ║
+// ║ request, the server verifies the signature hasn't been tampered. ║
+// ╚══════════════════════════════════════════════════════════════════╝
 import jwt from 'jsonwebtoken';
 import { env } from '../../config/env.js';
 

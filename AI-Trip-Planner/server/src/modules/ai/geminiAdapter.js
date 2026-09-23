@@ -1,3 +1,24 @@
+// ╔══════════════════════════════════════════════════════════════════╗
+// ║ GEMINI AI ADAPTER                                                ║
+// ║                                                                  ║
+// ║ PATTERN: Adapter — wraps the Google Gemini AI SDK behind a       ║
+// ║ clean interface with THREE methods:                              ║
+// ║   • generateItinerary(context, systemPrompt)                     ║
+// ║   • correctItinerary(context, systemPrompt, rawText, errors)     ║
+// ║   • replanItinerary(context, systemPrompt, current, instruction) ║
+// ║                                                                  ║
+// ║ WHY AN ADAPTER? So the rest of the code never touches the       ║
+// ║ Google SDK directly. You could swap to OpenAI, Claude, or a     ║
+// ║ fake adapter without changing ANY controller code.               ║
+// ║                                                                  ║
+// ║ STRUCTURED OUTPUT: The JSON schema below tells Gemini exactly    ║
+// ║ what shape to return (field names, types, enums). This prevents  ║
+// ║ the AI from inventing its own field names or structures.         ║
+// ║                                                                  ║
+// ║ REUSE: ACTIVITY_TYPES and PERIODS from itineraryContract.js     ║
+// ║ are the SINGLE SOURCE OF TRUTH for valid enums — used here,     ║
+// ║ in the validator, in the itinerary editor, and on the client.   ║
+// ╚══════════════════════════════════════════════════════════════════╝
 import { GoogleGenAI, ApiError, Type } from '@google/genai';
 import { env } from '../../config/env.js';
 import { ACTIVITY_TYPES, PERIODS } from './itineraryContract.js';

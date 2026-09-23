@@ -9,6 +9,8 @@ export function TripsPage() {
   const [loadStatus, setLoadStatus] = useState('loading');
   const [starting, setStarting] = useState(false);
   const [startError, setStartError] = useState(null);
+  const [deletingTripId, setDeletingTripId] = useState(null);
+  const [deleteError, setDeleteError] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -48,6 +50,22 @@ export function TripsPage() {
     }
   }
 
+  async function deleteTrip(trip) {
+    const title = trip.tripTitle || trip.destination || 'this trip';
+    if (!window.confirm(`Delete ${title}? This can’t be undone.`)) return;
+
+    setDeleteError(null);
+    setDeletingTripId(trip.id);
+    try {
+      await apiClient.delete(`/trips/${trip.id}`);
+      setTrips((currentTrips) => currentTrips.filter((currentTrip) => currentTrip.id !== trip.id));
+    } catch (err) {
+      setDeleteError(err.message);
+    } finally {
+      setDeletingTripId(null);
+    }
+  }
+
   return (
     <main className="page page--wide">
       <div className="page-header">
@@ -60,6 +78,11 @@ export function TripsPage() {
       {startError && (
         <p role="alert" className="form-error">
           {startError}
+        </p>
+      )}
+      {deleteError && (
+        <p role="alert" className="form-error">
+          {deleteError}
         </p>
       )}
 
@@ -78,18 +101,39 @@ export function TripsPage() {
         )}
         {loadStatus === 'ready' && trips.length > 0 && (
           <div className="trip-grid">
-            {trips.map((trip) => (
-              <button
-                key={trip.id}
-                type="button"
-                className="trip-card"
-                onClick={() => navigate(`/trips/${trip.id}`)}
-              >
-                <DestinationPhoto destination={trip.destination} thumbnail />
-                <h2>{trip.tripTitle || trip.destination || 'Untitled trip'}</h2>
-                <span className="status-pill">{trip.status}</span>
-              </button>
-            ))}
+            {trips.map((trip) => {
+              const title = trip.tripTitle || trip.destination || 'Untitled trip';
+              const deleting = deletingTripId === trip.id;
+
+              return (
+                <article key={trip.id} className="trip-card">
+                  <button
+                    type="button"
+                    className="trip-card__open"
+                    onClick={() => navigate(`/trips/${trip.id}`)}
+                    disabled={deletingTripId !== null}
+                    aria-label={`Open ${title}`}
+                  >
+                    <DestinationPhoto destination={trip.destination} thumbnail />
+                    <span role="heading" aria-level="2" className="trip-card__title">
+                      {title}
+                    </span>
+                    <span className="status-pill">{trip.status}</span>
+                  </button>
+                  {['DRAFT', 'READY_FOR_GENERATION', 'PLANNED'].includes(trip.status) && (
+                    <button
+                      type="button"
+                      className="btn btn-danger btn-sm trip-card__delete"
+                      onClick={() => deleteTrip(trip)}
+                      disabled={deletingTripId !== null}
+                      aria-label={`Delete ${title}`}
+                    >
+                      {deleting ? 'Deleting…' : 'Delete'}
+                    </button>
+                  )}
+                </article>
+              );
+            })}
           </div>
         )}
       </section>
