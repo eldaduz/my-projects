@@ -1,6 +1,6 @@
 import { next } from '@vercel/functions';
 
-export const config = { matcher: '/api/:path*' };
+export const config = { matcher: '/api/:path*', runtime: 'nodejs' };
 
 export default function middleware(request) {
   const headers = new Headers(request.headers);
