@@ -546,12 +546,18 @@ fieldset > div {
 }
 
 .spinner {
+  display: inline-block;
   width: 1.1em;
   height: 1.1em;
   border: 2px solid var(--color-border);
   border-top-color: var(--color-primary);
   border-radius: 50%;
   animation: spin 0.7s linear infinite;
+}
+
+.btn .spinner {
+  border-color: rgba(255, 255, 255, 0.35);
+  border-top-color: currentColor;
 }
 
 @keyframes spin {
@@ -674,7 +680,10 @@ fieldset > div {
   cursor: pointer;
   min-height: var(--tap-target);
   white-space: nowrap;
-  transition: background var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast);
+  transition:
+    background var(--transition-fast),
+    color var(--transition-fast),
+    border-color var(--transition-fast);
 }
 .day-tab:hover {
   background: var(--color-surface-alt);

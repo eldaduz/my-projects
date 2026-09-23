@@ -32,7 +32,6 @@ const BUDGET_LEVELS = [
   },
 ];
 
-
 // F10.1: the review step must summarize preferences too — only list the
 // categories the user actually expressed an opinion on (non-neutral).
 function formatPreferencesSummary(preferences) {
@@ -319,7 +318,9 @@ export function TripWizardPage() {
     setQuestionnaireBusy(true);
     try {
       const { trip: updated } = await apiClient.patch(`/trips/${id}`, {
-        mustDo: (trip.tripProfile?.mustDo ?? []).filter((_, existingIndex) => existingIndex !== index),
+        mustDo: (trip.tripProfile?.mustDo ?? []).filter(
+          (_, existingIndex) => existingIndex !== index,
+        ),
       });
       setTrip(updated);
     } catch (err) {
@@ -466,7 +467,12 @@ export function TripWizardPage() {
             <button type="button" className="btn" onClick={startEditBasics}>
               Edit
             </button>
-            <button type="button" className="btn btn-danger" onClick={handleDelete} disabled={deleting}>
+            <button
+              type="button"
+              className="btn btn-danger"
+              onClick={handleDelete}
+              disabled={deleting}
+            >
               {deleting ? 'Deleting…' : 'Delete trip'}
             </button>
           </div>
@@ -537,7 +543,10 @@ export function TripWizardPage() {
                     maxLength={100}
                     value={tripOnlyForm.travelerName}
                     onChange={(event) =>
-                      setTripOnlyForm((current) => ({ ...current, travelerName: event.target.value }))
+                      setTripOnlyForm((current) => ({
+                        ...current,
+                        travelerName: event.target.value,
+                      }))
                     }
                   />
                 </div>
@@ -752,7 +761,11 @@ export function TripWizardPage() {
                 <fieldset>
                   <legend>Budget level</legend>
                   {BUDGET_LEVELS.map((level) => (
-                    <div key={level.value} className="pref-option" style={{ marginBottom: 'var(--space-2)' }}>
+                    <div
+                      key={level.value}
+                      className="pref-option"
+                      style={{ marginBottom: 'var(--space-2)' }}
+                    >
                       <input
                         type="radio"
                         id={`budget-${level.value}`}
@@ -873,7 +886,11 @@ export function TripWizardPage() {
                     value={mustDoInput}
                     onChange={(event) => setMustDoInput(event.target.value)}
                   />
-                  <button type="submit" className="btn" disabled={questionnaireBusy || !mustDoInput.trim()}>
+                  <button
+                    type="submit"
+                    className="btn"
+                    disabled={questionnaireBusy || !mustDoInput.trim()}
+                  >
                     Add must-do
                   </button>
                 </form>
@@ -919,20 +936,28 @@ export function TripWizardPage() {
                 <p style={{ marginBottom: 'var(--space-3)' }}>
                   Review the sections above, then mark this trip ready for generation.
                 </p>
-                <button type="button" className="btn btn-primary" onClick={handleMarkReady} disabled={readinessBusy}>
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  onClick={handleMarkReady}
+                  disabled={readinessBusy}
+                >
                   {readinessBusy ? 'Marking ready…' : 'Mark ready for generation'}
                 </button>
               </>
             )}
             {trip.status === 'READY_FOR_GENERATION' && (
               <>
-                <p style={{ marginBottom: 'var(--space-3)' }}>This trip is ready for itinerary generation.</p>
+                <p style={{ marginBottom: 'var(--space-3)' }}>
+                  This trip is ready for itinerary generation.
+                </p>
                 <button
                   type="button"
                   className="btn btn-primary"
                   onClick={handleGenerateItinerary}
                   disabled={generationBusy}
                 >
+                  {generationBusy && <span className="spinner" aria-hidden="true" />}
                   {generationBusy ? 'Generating itinerary…' : 'Generate itinerary'}
                 </button>
                 {generationError && (
@@ -1058,7 +1083,12 @@ export function TripWizardPage() {
                 {submitting ? 'Saving…' : 'Save and continue'}
               </button>
               {trip.wizardStep >= BASICS_COMPLETE_STEP && (
-                <button type="button" className="btn" onClick={() => setEditingBasics(false)} disabled={submitting}>
+                <button
+                  type="button"
+                  className="btn"
+                  onClick={() => setEditingBasics(false)}
+                  disabled={submitting}
+                >
                   Cancel
                 </button>
               )}

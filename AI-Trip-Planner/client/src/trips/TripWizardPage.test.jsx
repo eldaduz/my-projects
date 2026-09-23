@@ -483,9 +483,7 @@ describe('TripWizardPage', () => {
     await user.type(screen.getByLabelText(/^destination$/i), 'Porto');
     await user.click(screen.getByRole('button', { name: /save and continue/i }));
 
-    await waitFor(() =>
-      expect(screen.getByRole('heading', { name: 'Porto' })).toBeInTheDocument(),
-    );
+    await waitFor(() => expect(screen.getByRole('heading', { name: 'Porto' })).toBeInTheDocument());
     // Travelers/questionnaire/review sections must still be visible as
     // summaries, not reset back to their entry forms.
     expect(screen.getByText('Sam')).toBeInTheDocument();
@@ -545,11 +543,15 @@ describe('TripWizardPage', () => {
     renderWizard();
 
     await waitFor(() =>
-      expect(screen.getByRole('button', { name: /mark ready for generation/i })).toBeInTheDocument(),
+      expect(
+        screen.getByRole('button', { name: /mark ready for generation/i }),
+      ).toBeInTheDocument(),
     );
     await user.click(screen.getByRole('button', { name: /mark ready for generation/i }));
 
-    await waitFor(() => expect(screen.getByText(/ready for itinerary generation/i)).toBeInTheDocument());
+    await waitFor(() =>
+      expect(screen.getByText(/ready for itinerary generation/i)).toBeInTheDocument(),
+    );
     expect(
       screen.queryByRole('button', { name: /mark ready for generation/i }),
     ).not.toBeInTheDocument();
@@ -568,7 +570,9 @@ describe('TripWizardPage', () => {
     renderWizard();
 
     await waitFor(() =>
-      expect(screen.getByRole('button', { name: /mark ready for generation/i })).toBeInTheDocument(),
+      expect(
+        screen.getByRole('button', { name: /mark ready for generation/i }),
+      ).toBeInTheDocument(),
     );
     await user.click(screen.getByRole('button', { name: /mark ready for generation/i }));
 
@@ -584,11 +588,14 @@ describe('TripWizardPage', () => {
       tripProfile: { travelers: [{ id: 'tt1', travelerName: 'Sam' }] },
     };
     let resolveGeneration;
-    const generation = new Promise((resolve) => { resolveGeneration = resolve; });
+    const generation = new Promise((resolve) => {
+      resolveGeneration = resolve;
+    });
     fetch.mockImplementation(async (url, options = {}) => {
       const method = options.method || 'GET';
       if (url === '/api/trips/1' && method === 'GET') return jsonResponse(200, { trip });
-      if (url === '/api/traveler-profiles' && method === 'GET') return jsonResponse(200, { profiles });
+      if (url === '/api/traveler-profiles' && method === 'GET')
+        return jsonResponse(200, { profiles });
       if (url === '/api/trips/1/generate-itinerary' && method === 'POST') {
         await generation;
         return jsonResponse(502, { error: { message: 'Generation failed safely.' } });
@@ -598,14 +605,19 @@ describe('TripWizardPage', () => {
     const user = userEvent.setup();
     renderWizard();
 
-    await waitFor(() => expect(screen.getByRole('button', { name: /generate itinerary/i })).toBeInTheDocument());
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: /generate itinerary/i })).toBeInTheDocument(),
+    );
     const action = screen.getByRole('button', { name: /generate itinerary/i });
     await user.click(action);
     expect(screen.getByRole('button', { name: /generating itinerary/i })).toBeDisabled();
+    expect(document.querySelector('.spinner')).toBeInTheDocument();
     expect(fetch).toHaveBeenCalledTimes(3);
 
     resolveGeneration();
-    await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent(/generation failed safely/i));
+    await waitFor(() =>
+      expect(screen.getByRole('alert')).toHaveTextContent(/generation failed safely/i),
+    );
     expect(screen.getByRole('button', { name: /generate itinerary/i })).not.toBeDisabled();
   });
 
@@ -621,7 +633,8 @@ describe('TripWizardPage', () => {
     fetch.mockImplementation(async (url, options = {}) => {
       const method = options.method || 'GET';
       if (url === '/api/trips/1' && method === 'GET') return jsonResponse(200, { trip });
-      if (url === '/api/traveler-profiles' && method === 'GET') return jsonResponse(200, { profiles });
+      if (url === '/api/traveler-profiles' && method === 'GET')
+        return jsonResponse(200, { profiles });
       if (url === '/api/trips/1/generate-itinerary' && method === 'POST') {
         return jsonResponse(200, { trip: generatedTrip });
       }
@@ -630,7 +643,9 @@ describe('TripWizardPage', () => {
     const user = userEvent.setup();
     renderWizard();
 
-    await waitFor(() => expect(screen.getByRole('button', { name: /generate itinerary/i })).toBeInTheDocument());
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: /generate itinerary/i })).toBeInTheDocument(),
+    );
     await user.click(screen.getByRole('button', { name: /generate itinerary/i }));
 
     await waitFor(() => expect(screen.getByText(/status: planned/i)).toBeInTheDocument());
@@ -648,11 +663,14 @@ describe('TripWizardPage', () => {
       currentItinerary: { destination: 'Lisbon', days: [] },
     };
     let resolveReplan;
-    const replan = new Promise((resolve) => { resolveReplan = resolve; });
+    const replan = new Promise((resolve) => {
+      resolveReplan = resolve;
+    });
     fetch.mockImplementation(async (url, options = {}) => {
       const method = options.method || 'GET';
       if (url === '/api/trips/1' && method === 'GET') return jsonResponse(200, { trip });
-      if (url === '/api/traveler-profiles' && method === 'GET') return jsonResponse(200, { profiles });
+      if (url === '/api/traveler-profiles' && method === 'GET')
+        return jsonResponse(200, { profiles });
       if (url === '/api/trips/1/replan-itinerary' && method === 'POST') {
         await replan;
         return jsonResponse(502, { error: { message: 'Replan failed safely.' } });
@@ -662,14 +680,18 @@ describe('TripWizardPage', () => {
     const user = userEvent.setup();
     renderWizard();
 
-    await waitFor(() => expect(screen.getByLabelText(/what would you like to change/i)).toBeInTheDocument());
+    await waitFor(() =>
+      expect(screen.getByLabelText(/what would you like to change/i)).toBeInTheDocument(),
+    );
     await user.type(screen.getByLabelText(/what would you like to change/i), 'Add more museums');
     const action = screen.getByRole('button', { name: /^replan itinerary$/i });
     await user.click(action);
     expect(screen.getByRole('button', { name: /replanning/i })).toBeDisabled();
 
     resolveReplan();
-    await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent(/replan failed safely/i));
+    await waitFor(() =>
+      expect(screen.getByRole('alert')).toHaveTextContent(/replan failed safely/i),
+    );
     expect(screen.getByRole('button', { name: /^replan itinerary$/i })).not.toBeDisabled();
   });
 
@@ -688,7 +710,8 @@ describe('TripWizardPage', () => {
     fetch.mockImplementation(async (url, options = {}) => {
       const method = options.method || 'GET';
       if (url === '/api/trips/1' && method === 'GET') return jsonResponse(200, { trip });
-      if (url === '/api/traveler-profiles' && method === 'GET') return jsonResponse(200, { profiles });
+      if (url === '/api/traveler-profiles' && method === 'GET')
+        return jsonResponse(200, { profiles });
       if (url === '/api/trips/1/replan-itinerary' && method === 'POST') {
         lastBody = JSON.parse(options.body);
         return jsonResponse(200, { trip: replannedTrip });
@@ -698,12 +721,16 @@ describe('TripWizardPage', () => {
     const user = userEvent.setup();
     renderWizard();
 
-    await waitFor(() => expect(screen.getByLabelText(/what would you like to change/i)).toBeInTheDocument());
+    await waitFor(() =>
+      expect(screen.getByLabelText(/what would you like to change/i)).toBeInTheDocument(),
+    );
     await user.type(screen.getByLabelText(/what would you like to change/i), 'Add more museums');
     await user.click(screen.getByRole('button', { name: /^replan itinerary$/i }));
 
     await waitFor(() => expect(lastBody).toEqual({ replanInstruction: 'Add more museums' }));
-    await waitFor(() => expect(screen.getByLabelText(/what would you like to change/i)).toHaveValue(''));
+    await waitFor(() =>
+      expect(screen.getByLabelText(/what would you like to change/i)).toHaveValue(''),
+    );
   });
 
   test('does not offer replan while the trip is not PLANNED', async () => {
@@ -716,7 +743,9 @@ describe('TripWizardPage', () => {
     };
     renderWizard();
 
-    await waitFor(() => expect(screen.getByRole('button', { name: /generate itinerary/i })).toBeInTheDocument());
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: /generate itinerary/i })).toBeInTheDocument(),
+    );
     expect(screen.queryByLabelText(/what would you like to change/i)).not.toBeInTheDocument();
   });
 
@@ -731,8 +760,6 @@ describe('TripWizardPage', () => {
     renderWizard();
 
     await waitFor(() => expect(screen.getByText('Sam')).toBeInTheDocument());
-    expect(
-      screen.queryByRole('heading', { name: /review & readiness/i }),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: /review & readiness/i })).not.toBeInTheDocument();
   });
 });

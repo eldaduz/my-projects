@@ -102,7 +102,7 @@ export class GeminiRequestError extends Error {
   }
 }
 
-const DEFAULT_TIMEOUT_MS = 15000;
+const DEFAULT_TIMEOUT_MS = 60000;
 
 // Classifies a raw provider/transport failure into whether the adapter should
 // retry once, and the safe code the controller uses to pick a response.
