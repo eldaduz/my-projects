@@ -1,7 +1,11 @@
 import mongoose from 'mongoose';
 import { Trip, CHILD_MIN_AGE, CHILD_MAX_AGE, BUDGET_LEVELS } from './trip.model.js';
 import { TravelerProfile, PACE_OPTIONS } from '../travelers/travelerProfile.model.js';
-import { readProfileFields, readPreferences, readFreeText } from '../travelers/travelers.controller.js';
+import {
+  readProfileFields,
+  readPreferences,
+  readFreeText,
+} from '../travelers/travelers.controller.js';
 import { buildTravelerSnapshot } from './travelerSnapshot.js';
 import { isMaterialChange, applyStaleIfMaterial } from './tripLifecycle.js';
 import { HttpError } from '../../middleware/errorHandler.js';
@@ -257,7 +261,12 @@ function readPaceOverride(body) {
 }
 
 function readHardConstraints(body) {
-  return readFreeText(body, 'hardConstraints', 'INVALID_HARD_CONSTRAINTS', MAX_HARD_CONSTRAINTS_LENGTH);
+  return readFreeText(
+    body,
+    'hardConstraints',
+    'INVALID_HARD_CONSTRAINTS',
+    MAX_HARD_CONSTRAINTS_LENGTH,
+  );
 }
 
 function readNotes(body) {
@@ -343,7 +352,8 @@ function valuesDiffer(previous, next) {
 function applyTripProfileFields(trip, fields) {
   if (fields.accommodation !== undefined) {
     const { hotelBooked, hotelName, hotelArea } = fields.accommodation;
-    if (hotelBooked !== undefined) trip.tripProfile.accommodation.hotelBooked = hotelBooked ?? undefined;
+    if (hotelBooked !== undefined)
+      trip.tripProfile.accommodation.hotelBooked = hotelBooked ?? undefined;
     if (hotelName !== undefined) trip.tripProfile.accommodation.hotelName = hotelName ?? undefined;
     if (hotelArea !== undefined) trip.tripProfile.accommodation.hotelArea = hotelArea ?? undefined;
   }
@@ -492,23 +502,43 @@ async function generate(req, res, next, geminiAdapter) {
     req.trip.startedAt = null;
     await req.trip.save();
 
-    // Log the classification/code only — never the PlanningContext, raw
-    // provider payloads, or full error detail (SYSTEM_DESIGN §7 privacy rule).
-    console.error(`Itinerary generation failed for trip ${req.trip.id}: ${err.code ?? err.name ?? 'UNKNOWN'}`);
+    // Never log the PlanningContext, trip data, raw provider payloads, or full
+    // error detail (SYSTEM_DESIGN §7 privacy rule).
+    console.error({
+      event: 'itinerary_generation_failed',
+      code: err.code ?? err.name ?? 'UNKNOWN',
+      providerStatus: err.providerStatus ?? null,
+      providerErrorName: err.providerErrorName ?? null,
+    });
 
     if (err.code === 'RATE_LIMITED') {
       return next(
-        new HttpError(429, 'The AI service is busy right now. Please try again shortly.', 'AI_PROVIDER_BUSY'),
+        new HttpError(
+          429,
+          'The AI service is busy right now. Please try again shortly.',
+          'AI_PROVIDER_BUSY',
+        ),
       );
     }
-    return next(new HttpError(502, 'Unable to generate an itinerary. Please try again.', 'ITINERARY_GENERATION_FAILED'));
+    return next(
+      new HttpError(
+        502,
+        'Unable to generate an itinerary. Please try again.',
+        'ITINERARY_GENERATION_FAILED',
+      ),
+    );
   }
 }
 
 function readReplanInstruction(body) {
-  const replanInstruction = typeof body?.replanInstruction === 'string' ? body.replanInstruction.trim() : '';
+  const replanInstruction =
+    typeof body?.replanInstruction === 'string' ? body.replanInstruction.trim() : '';
   if (!replanInstruction || replanInstruction.length > MAX_REPLAN_INSTRUCTION_LENGTH) {
-    throw new HttpError(400, 'Replan instruction is required and must be reasonably short.', 'INVALID_REPLAN_INSTRUCTION');
+    throw new HttpError(
+      400,
+      'Replan instruction is required and must be reasonably short.',
+      'INVALID_REPLAN_INSTRUCTION',
+    );
   }
   return replanInstruction;
 }
@@ -584,14 +614,26 @@ async function replan(req, res, next, geminiAdapter) {
 
     // Log the classification/code only — never PlanningContext, raw provider
     // payloads, or full error detail (SYSTEM_DESIGN §7 privacy rule).
-    console.error(`Itinerary replan failed for trip ${req.trip.id}: ${err.code ?? err.name ?? 'UNKNOWN'}`);
+    console.error(
+      `Itinerary replan failed for trip ${req.trip.id}: ${err.code ?? err.name ?? 'UNKNOWN'}`,
+    );
 
     if (err.code === 'RATE_LIMITED') {
       return next(
-        new HttpError(429, 'The AI service is busy right now. Please try again shortly.', 'AI_PROVIDER_BUSY'),
+        new HttpError(
+          429,
+          'The AI service is busy right now. Please try again shortly.',
+          'AI_PROVIDER_BUSY',
+        ),
       );
     }
-    return next(new HttpError(502, 'Unable to replan the itinerary. Please try again.', 'ITINERARY_REPLAN_FAILED'));
+    return next(
+      new HttpError(
+        502,
+        'Unable to replan the itinerary. Please try again.',
+        'ITINERARY_REPLAN_FAILED',
+      ),
+    );
   }
 }
 
@@ -629,7 +671,10 @@ export async function updateTrip(req, res, next) {
     };
     applyTripProfileFields(req.trip, tripProfileFields);
     for (const key of ['paceOverride', 'preferences', 'hardConstraints', 'mustDo']) {
-      if (tripProfileFields[key] !== undefined && valuesDiffer(beforeTripProfile[key], req.trip.tripProfile[key])) {
+      if (
+        tripProfileFields[key] !== undefined &&
+        valuesDiffer(beforeTripProfile[key], req.trip.tripProfile[key])
+      ) {
         changedFields.push(key);
       }
     }
@@ -690,7 +735,11 @@ export async function updateTrip(req, res, next) {
 export async function deleteTrip(req, res, next) {
   try {
     if (['GENERATING', 'REPLANNING'].includes(req.trip.status)) {
-      throw new HttpError(409, 'This trip is being updated. Please try again shortly.', 'TRIP_DELETE_IN_PROGRESS');
+      throw new HttpError(
+        409,
+        'This trip is being updated. Please try again shortly.',
+        'TRIP_DELETE_IN_PROGRESS',
+      );
     }
     await req.trip.deleteOne();
     res.status(204).end();

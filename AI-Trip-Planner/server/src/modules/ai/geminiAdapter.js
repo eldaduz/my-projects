@@ -93,10 +93,12 @@ export const REPLAN_SYSTEM_INSTRUCTION = [
 ].join(' ');
 
 export class GeminiRequestError extends Error {
-  constructor(message, code) {
+  constructor(message, code, { providerStatus = null, providerErrorName = null } = {}) {
     super(message);
     this.name = 'GeminiRequestError';
     this.code = code;
+    this.providerStatus = providerStatus;
+    this.providerErrorName = providerErrorName;
   }
 }
 
@@ -119,6 +121,13 @@ function classify(err) {
   return { retryable: true, code: 'PROVIDER_UNAVAILABLE' };
 }
 
+function toGeminiRequestError(err, code) {
+  return new GeminiRequestError(err.message, code, {
+    providerStatus: err instanceof ApiError ? err.status : null,
+    providerErrorName: err?.name ?? null,
+  });
+}
+
 async function callWithTimeout(makeCall, timeoutMs) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
@@ -136,7 +145,12 @@ async function callWithTimeout(makeCall, timeoutMs) {
   }
 }
 
-export function createGeminiAdapter({ apiKey = env.geminiApiKey, model = env.geminiModel, client, timeoutMs = DEFAULT_TIMEOUT_MS } = {}) {
+export function createGeminiAdapter({
+  apiKey = env.geminiApiKey,
+  model = env.geminiModel,
+  client,
+  timeoutMs = DEFAULT_TIMEOUT_MS,
+} = {}) {
   if (!model) throw new Error('GEMINI_MODEL is required to use the Gemini adapter.');
   const sdkClient = client ?? (apiKey ? new GoogleGenAI({ apiKey }) : null);
   if (!sdkClient) throw new Error('GEMINI_API_KEY is required to use the Gemini adapter.');
@@ -172,11 +186,11 @@ export function createGeminiAdapter({ apiKey = env.geminiApiKey, model = env.gem
       return await attempt(task, data, systemInstruction);
     } catch (err) {
       const { retryable, code } = classify(err);
-      if (!retryable) throw new GeminiRequestError(err.message, code);
+      if (!retryable) throw toGeminiRequestError(err, code);
       try {
         return await attempt(task, data, systemInstruction);
       } catch (retryErr) {
-        throw new GeminiRequestError(retryErr.message, classify(retryErr).code);
+        throw toGeminiRequestError(retryErr, classify(retryErr).code);
       }
     }
   }
